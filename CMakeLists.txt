@@ -36,6 +36,7 @@ print_compile_options()
 #                      Configure Project                      #
 #=============================================================#
 
+install_fmt()
 add_subdirectory(src)
 
 
