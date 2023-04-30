@@ -8,25 +8,33 @@ namespace ezmath::test {
 
 using namespace parsing;
 
-
 class LexerTest : public ::testing::Test {
 protected:
     using TTest = std::string_view;
     using TAnsw = std::vector<Token>;
 
-    Lexer m_lexer;
-
-void ExpectSuccess(const TTest& test, const TAnsw& answ) {
-    ASSERT_NO_THROW(m_lexer.Tokenize(test));
-    ExpectEQ(answ);
+TAnsw Tokenize(const TTest& test) {
+    Lexer lexer{test};
+    TAnsw res;
+    while (const auto token = lexer.GetToken()) {
+        res.push_back(*token);
+        lexer.NextToken();
+    }
+    return res;
 }
 
-void ExpectEQ(const TAnsw& answ) {
-    EXPECT_EQ(std::distance(m_lexer.begin(), m_lexer.end()), std::distance(answ.begin(), answ.end())) << PrintTokens();
+void ExpectSuccess(const TTest& test, const TAnsw& answ) {
+    TAnsw lexerAnsw;
+    ASSERT_NO_THROW(lexerAnsw = Tokenize(test));
+    ExpectEQ(answ, lexerAnsw);
+}
 
-    auto TestAnsIt = answ.begin();
-    auto LexerAnsIt = m_lexer.begin();
-    while (TestAnsIt != answ.end() && LexerAnsIt != m_lexer.end()) {
+void ExpectEQ(const TAnsw& testAnsw, const TAnsw& lexerAnsw) {
+    EXPECT_EQ(testAnsw.size(), lexerAnsw.size()) << PrintTokens(lexerAnsw);
+
+    auto TestAnsIt = testAnsw.begin();
+    auto LexerAnsIt = lexerAnsw.begin();
+    while (TestAnsIt != testAnsw.end() && LexerAnsIt != lexerAnsw.end()) {
         EXPECT_EQ(*TestAnsIt, *LexerAnsIt) 
             << fmt::format("TestAns: {}\nLexrAns: {}", ToString(*TestAnsIt), ToString(*LexerAnsIt));
         ++TestAnsIt;
@@ -34,9 +42,9 @@ void ExpectEQ(const TAnsw& answ) {
     }
 }
 
-std::string PrintTokens() {
+std::string PrintTokens(const TAnsw& lexerAnsw) {
     std::string res = "Tokens:\n";
-    for (const auto token : m_lexer) {
+    for (const auto token : lexerAnsw) {
         res.append('>' + ToString(token) + '\n');
     }
     return res;
@@ -57,26 +65,25 @@ private:
 };
 
 
-TEST_F(LexerTest, TestNumber_correct) {
+TEST_F(LexerTest, TestNumber) {
+    TAnsw tmp;
     TTest TEST = "1234567890 1234.567890";
     TAnsw ANSW = {
         Token{Token::EType::Number, "1234567890"},
         Token{Token::EType::Number, "1234.567890"}
     };
     ExpectSuccess(TEST, ANSW);
-}
 
-TEST_F(LexerTest, TestNumber_invalid) {
     TTest TEST1 = "1234567890.";
     TTest TEST2 = "123.4567.890";
     TTest TEST3 = ".1234567890";
-    EXPECT_THROW(m_lexer.Tokenize(TEST1), ezmath::parsing::exception::LexerException);
-    EXPECT_THROW(m_lexer.Tokenize(TEST2), ezmath::parsing::exception::LexerException);
-    EXPECT_THROW(m_lexer.Tokenize(TEST3), ezmath::parsing::exception::LexerException);
+    EXPECT_THROW(tmp = Tokenize(TEST1), ezmath::parsing::exception::LexerException) << PrintTokens(tmp);
+    EXPECT_THROW(tmp = Tokenize(TEST2), ezmath::parsing::exception::LexerException) << PrintTokens(tmp);
+    EXPECT_THROW(tmp = Tokenize(TEST3), ezmath::parsing::exception::LexerException) << PrintTokens(tmp);
 }
 
-
-TEST_F(LexerTest, TestCommand_correct) {
+TEST_F(LexerTest, TestCommand) {
+    TAnsw tmp;
     TTest TEST = "\\command \\CoMmAnD \\cOmMaNd";
     TAnsw ANSW = {
         Token{Token::EType::Command, "\\command"},
@@ -86,27 +93,24 @@ TEST_F(LexerTest, TestCommand_correct) {
     ExpectSuccess(TEST, ANSW);
 
     for (char cc = 1; cc < 128; ++cc) {
+        if (cc == '\\') continue;
         if (std::isalpha(cc)) {
             const std::string TEST = std::string{"\\"} + cc;
             TAnsw ANSW = {
                 Token{Token::EType::Command, TEST}
             };
             ExpectSuccess(TEST, ANSW);
-        }
-    }
-}
-
-TEST_F(LexerTest, TestCommand_invalid) {
-    for (char cc = 1; cc < 128; ++cc) {
-        if (!std::isalpha(cc) && cc != '\\') {
+        } 
+        else {
             const std::string TEST = std::string{"\\"} + cc;
-            EXPECT_THROW(m_lexer.Tokenize(TEST) , ezmath::parsing::exception::LexerException) 
-                << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens());
+            EXPECT_THROW(tmp = Tokenize(TEST) , ezmath::parsing::exception::LexerException) 
+                << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens(tmp));
         }
     }
 }
 
 TEST_F(LexerTest, TestSymbol) {
+    TAnsw tmp;
     for (char cc = 1; cc < 128; ++cc) {
         const std::string TEST = std::string{} + cc;
         if (std::isalpha(cc)) {
@@ -116,14 +120,19 @@ TEST_F(LexerTest, TestSymbol) {
             ExpectSuccess(TEST, ANSW);
         } else {
             try {
-                m_lexer.Tokenize(TEST);
-                EXPECT_NE(m_lexer.at(0).Type, Token::EType::Symbol) << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens());
-            } catch (...) {}
+                tmp = Tokenize(TEST);
+                if (tmp.empty()) {
+                    continue;
+                }
+                EXPECT_NE(tmp.front().Type, Token::EType::Symbol) 
+                    << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens(tmp));
+            } catch (const parsing::exception::LexerException&) {}
         }
     }
 }
 
 TEST_F(LexerTest, TestBracket) {
+    TAnsw tmp;
     for (char cc = 1; cc < 128; ++cc) {
         const std::string TEST = std::string{} + cc;
         if (Lexer::BRACKETS.contains(cc)) {
@@ -133,14 +142,19 @@ TEST_F(LexerTest, TestBracket) {
             ExpectSuccess(TEST, ANSW);
         } else {
             try {
-                m_lexer.Tokenize(TEST);
-                EXPECT_NE(m_lexer.at(0).Type, Token::EType::Bracket) << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens());
-            } catch (...) {}
+                tmp = Tokenize(TEST);
+                if (tmp.empty()) {
+                    continue;
+                }
+                EXPECT_NE(tmp.front().Type, Token::EType::Bracket) 
+                    << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens(tmp));
+            } catch (const parsing::exception::LexerException&) {}
         }
     }
 }
 
 TEST_F(LexerTest, TestOperator) {
+    TAnsw tmp;
     for (char cc = 1; cc < 128; ++cc) {
         const std::string TEST = std::string{} + cc;
         if (Lexer::OPERATORS.contains(cc)) {
@@ -150,9 +164,13 @@ TEST_F(LexerTest, TestOperator) {
             ExpectSuccess(TEST, ANSW);
         } else {
             try {
-                m_lexer.Tokenize(TEST);
-                EXPECT_NE(m_lexer.at(0).Type, Token::EType::Operator) << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens());
-            } catch (...) {}
+                tmp = Tokenize(TEST);
+                if (tmp.empty()) {
+                    continue;
+                }
+                EXPECT_NE(tmp.front().Type, Token::EType::Operator) 
+                    << fmt::format("Test: \"{}\":\n{}", TEST, PrintTokens(tmp));
+            } catch (const parsing::exception::LexerException&) {}
         }
     }
 }

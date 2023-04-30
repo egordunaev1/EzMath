@@ -6,6 +6,8 @@
 
 namespace ezmath::parsing {
 
+using THandler = Token(*)(std::string_view);
+
 Token ReadNumber(const std::string_view str) {
     constexpr auto isnumdot = [](const char cc){ return std::isdigit(cc) || cc == '.'; };
     constexpr auto isdot = [](const char cc){ return cc == '.'; };
@@ -44,55 +46,78 @@ Token Read2SOrCommand(const std::string_view str) {
         : ReadCommand(str);
 }
 
-ezmath::parsing::Lexer::Lexer() {
-    m_tokens.reserve(RESERVED_SIZE);
+constexpr static std::array<THandler, 128> handlers = []() constexpr {
+    constexpr auto isDigit = [](const char cc){ return '0' <= cc && cc <= '9'; };
+    constexpr auto isAlpha = [](const char cc){ return ('a' <= cc && cc <= 'z') || ('A' <= cc && cc <= 'Z'); };
+
+    std::array<THandler, 128> result{};
+    for (char cc = 0; cc < 128; ++cc) {
+        if (Lexer::BRACKETS.contains(cc)) {
+            result[cc] = [](std::string_view s){ 
+                return Token{Token::EType::Bracket, s.substr(0, 1)}; 
+            };
+        } else if (Lexer::OPERATORS.contains(cc)) {
+            result[cc] = [](std::string_view s){ 
+                return Token{Token::EType::Operator, s.substr(0, 1)};
+            };
+        } else if (isAlpha(cc)) {
+            result[cc] = [](std::string_view s){ 
+                return Token{Token::EType::Symbol, s.substr(0, 1)};
+            };
+        } else if (isDigit(cc)) {
+            result[cc] = ReadNumber;
+        } else {
+            result[cc] = nullptr;
+        }
+    }
+    result['\\'] = Read2SOrCommand;
+    return result;
+}();
+
+ezmath::parsing::Lexer::Lexer(const std::string_view text) 
+    : m_text{text}
+    , m_iterator{text.begin()}
+{}
+
+std::optional<Token> Lexer::GetToken() {
+    if (m_bufferedToken.Value.begin() == m_iterator) {
+        return m_bufferedToken;
+    }
+
+    m_iterator = std::ranges::find_if_not(m_iterator, m_text.end(), isspace);
+    if (m_iterator == m_text.end()) {
+        return std::nullopt;
+    }
+
+    const auto handler = handlers[*m_iterator];
+    if (!handler) {
+        throw exception::LexerException{fmt::format("Unexpected character: '{}' [{:#04x}]", *m_iterator, *m_iterator)};
+    }
+    
+    return m_bufferedToken = handler({m_iterator, m_text.end()});
 }
 
-void Lexer::Tokenize(const std::string_view str) {
-    m_tokens.clear();
-
-    using THandler = Token(*)(std::string_view);
-    constexpr static std::array<THandler, 128> handlers = []() constexpr {
-        constexpr auto isDigit = [](const char cc){ return '0' <= cc && cc <= '9'; };
-        constexpr auto isAlpha = [](const char cc){ return ('a' <= cc && cc <= 'z') || ('A' <= cc && cc <= 'Z'); };
-
-        std::array<THandler, 128> result{};
-        for (char cc = 0; cc < 128; ++cc) {
-            if (BRACKETS.contains(cc)) {
-                result[cc] = [](std::string_view s){ 
-                    return Token{Token::EType::Bracket, s.substr(0, 1)}; 
-                };
-            } else if (OPERATORS.contains(cc)) {
-                result[cc] = [](std::string_view s){ 
-                    return Token{Token::EType::Operator, s.substr(0, 1)};
-                };
-            } else if (isAlpha(cc)) {
-                result[cc] = [](std::string_view s){ 
-                    return Token{Token::EType::Symbol, s.substr(0, 1)};
-                };
-            } else if (isDigit(cc)) {
-                result[cc] = ReadNumber;
-            } else {
-                result[cc] = nullptr;
-            }
-        }
-        result['\\'] = Read2SOrCommand;
-        return result;
-    }();
-
-    for (const char* next = std::ranges::find_if_not(str, isspace); 
-         next != str.end(); 
-         next = std::ranges::find_if_not(next, str.end(), isspace)) 
-    {
-        const auto handler = handlers[*next];
-        if (!handler) {
-            throw exception::LexerException{fmt::format("Unexpected character: '{}' [{:#04x}]", *next, *next)};
-        }
-        
-        const auto token = handler(str.substr(next - str.begin()));
-        m_tokens.emplace_back(token);
-        next += token.Value.size();
+bool Lexer::NextToken() {
+    if (const auto curToken = GetToken()) {
+        m_iterator = curToken->Value.end();
+        return true;
     }
+    return false;
+}
+
+const char* Lexer::GetChar() {
+    m_iterator = std::ranges::find_if_not(m_iterator, m_text.end(), isspace);
+    if (m_iterator == m_text.end()) {
+        return nullptr;
+    }
+    return m_iterator;
+}
+
+void Lexer::NextChar() {
+    if (m_iterator == m_text.end()) {
+        throw exception::LexerException{"Iterator out of bounds"};
+    }
+    ++m_iterator;
 }
 
 }
