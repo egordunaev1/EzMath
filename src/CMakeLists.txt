@@ -1,1 +1,2 @@
 add_subdirectory(ezmath)
+add_subdirectory(parsing)
