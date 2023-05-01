@@ -1,4 +1,5 @@
 #include <expression_tree/power.hpp>
+#include <expression_tree/factory.hpp>
 #include <fmt/format.h>
 
 namespace ezmath::expression_tree {
@@ -9,7 +10,7 @@ Power::Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp)
 {}
 
 std::unique_ptr<IExpr> Power::Copy() const {
-    return std::make_unique<Power>(m_base->Copy(), m_exp->Copy());
+    return Factory::MakePower(m_base->Copy(), m_exp->Copy());
 }
 
 std::string Power::ToString() const {

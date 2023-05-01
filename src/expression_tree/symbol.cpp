@@ -1,11 +1,12 @@
 #include <expression_tree/symbol.hpp>
+#include <expression_tree/factory.hpp>
 
 namespace ezmath::expression_tree {
 
 Symbol::Symbol(const std::string_view val) : m_value{val} {}
 
 std::unique_ptr<IExpr> Symbol::Copy() const {
-    return std::make_unique<Symbol>(m_value);
+    return Factory::MakeSymbol(m_value);
 }
 
 std::string Symbol::ToString() const {

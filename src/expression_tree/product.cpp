@@ -1,4 +1,5 @@
 #include <expression_tree/product.hpp>
+#include <expression_tree/factory.hpp>
 #include <ranges>
 
 namespace ezmath::expression_tree {
@@ -16,7 +17,7 @@ void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
         const auto numVal = subExpr->As<Number>();
         m_coefficient *= numVal->GetValue();
     } else {
-        m_value.emplace_back(std::move(subExpr));
+    m_value.emplace_back(std::move(subExpr));
     }
 }
 
@@ -26,8 +27,7 @@ std::unique_ptr<IExpr> Product::Copy() const {
     for (const auto& val : m_value) {
         newValue.emplace_back(val->Copy());
     }
-    
-    return std::make_unique<Product>(std::move(newValue));
+    return Factory::MakeProduct(std::move(newValue), Number{m_coefficient});
 }
 
 std::string Product::ToString() const {

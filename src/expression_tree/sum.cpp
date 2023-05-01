@@ -1,4 +1,5 @@
 #include <expression_tree/sum.hpp>
+#include <expression_tree/factory.hpp>
 #include <ranges>
 
 namespace ezmath::expression_tree {
@@ -17,8 +18,7 @@ std::unique_ptr<IExpr> Sum::Copy() const {
     for (const auto& val : m_value) {
         newValue.emplace_back(val->Copy());
     }
-    
-    return std::make_unique<Sum>(std::move(newValue));
+    return Factory::MakeSum(std::move(newValue));
 }
 
 std::string Sum::ToString() const {

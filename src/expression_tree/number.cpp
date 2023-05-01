@@ -1,5 +1,6 @@
 #include <expression_tree/number.hpp>
 #include <expression_tree/exception.hpp>
+#include <expression_tree/factory.hpp>
 
 namespace ezmath::expression_tree {
 
@@ -9,7 +10,7 @@ Number::Number(const bigint& val) : m_value{val} {}
 Number::Number(const std::string& val) : m_value{val} {}
 
 std::unique_ptr<IExpr> Number::Copy() const {
-    return std::make_unique<Number>(m_value);
+    return Factory::MakeNumber(m_value);
 }
 
 std::string Number::ToString() const {
