@@ -8,14 +8,6 @@ Number::Number(bigint&& val) : m_value{std::move(val)} {}
 Number::Number(const bigint& val) : m_value{val} {}
 Number::Number(const std::string& val) : m_value{val} {}
 
-size_t Number::TypeID() noexcept {
-    return __COUNTER__;
-}
-
-size_t Number::GetTypeID() const noexcept {
-    return TypeID();
-}
-
 std::unique_ptr<IExpr> Number::Copy() const {
     return std::make_unique<Number>(m_value);
 }

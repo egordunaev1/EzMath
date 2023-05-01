@@ -12,20 +12,12 @@ Product::Product(std::vector<std::unique_ptr<IExpr>>&& subExpr, Number&& coeffic
 }
 
 void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
-    if (subExpr->GetTypeID() == Number::TypeID()) {
-        const auto numVal = dynamic_cast<Number*>(subExpr.get());
+    if (subExpr->Is<Number>()) {
+        const auto numVal = subExpr->As<Number>();
         m_coefficient *= numVal->GetValue();
     } else {
         m_value.emplace_back(std::move(subExpr));
     }
-}
-
-size_t Product::TypeID() noexcept {
-    return __COUNTER__;
-}
-
-size_t Product::GetTypeID() const noexcept {
-    return TypeID();
 }
 
 std::unique_ptr<IExpr> Product::Copy() const {

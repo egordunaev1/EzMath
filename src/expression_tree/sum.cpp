@@ -11,14 +11,6 @@ void Sum::Add(std::unique_ptr<IExpr>&& subExpr) {
     m_value.emplace_back(std::move(subExpr));
 }
 
-size_t Sum::TypeID() noexcept {
-    return __COUNTER__;
-}
-
-size_t Sum::GetTypeID() const noexcept {
-    return TypeID();
-}
-
 std::unique_ptr<IExpr> Sum::Copy() const {
     std::vector<std::unique_ptr<IExpr>> newValue;
     newValue.reserve(m_value.size());

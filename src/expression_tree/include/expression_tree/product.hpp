@@ -15,9 +15,6 @@ public:
     
     void Add(std::unique_ptr<IExpr>&& subExpr);
 
-    static size_t TypeID() noexcept;
-    size_t GetTypeID() const noexcept override;
-
     std::unique_ptr<IExpr> Copy() const override;
     std::string ToString() const override;
 

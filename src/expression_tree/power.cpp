@@ -8,14 +8,6 @@ Power::Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp)
     , m_exp{std::move(exp)}
 {}
 
-size_t Power::TypeID() noexcept {
-    return __COUNTER__;
-}
-
-size_t Power::GetTypeID() const noexcept {
-    return TypeID();
-}
-
 std::unique_ptr<IExpr> Power::Copy() const {
     return std::make_unique<Power>(m_base->Copy(), m_exp->Copy());
 }
