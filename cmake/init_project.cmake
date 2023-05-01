@@ -22,7 +22,7 @@ function(print_compiler_info compiler)
 endfunction()
 
 function(init_compile_options)
-    set(CXX_FLAGS "-Wall" "-Wextra" "-Werror" "-fcolor-diagnostics")
+    set(CXX_FLAGS "-Wall" "-Wextra" "-Werror")
     set(CXX_FLAGS_DEBUG "-g")
     set(CXX_FLAGS_RELEASE "-O3")
     
@@ -31,7 +31,7 @@ function(init_compile_options)
     endif()
 
     if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
-        list(APPEND CXX_FLAGS_DEBUG "-fno-limit-debug-info")
+        list(APPEND CXX_FLAGS_DEBUG "-fno-limit-debug-info" "-fcolor-diagnostics")
     endif()
 
     if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
