@@ -6,9 +6,19 @@ namespace ezmath::expression_tree {
 
 Sum::Sum(std::vector<std::unique_ptr<IExpr>>&& subExpr)
     : m_value{std::make_move_iterator(subExpr.begin()), std::make_move_iterator(subExpr.end())}
-{}
+{
+    for (auto& val : m_value) {
+        Add(std::move(val));
+    }
+}
 
 void Sum::Add(std::unique_ptr<IExpr>&& subExpr) {
+    if (subExpr->Is<Sum>()) {
+        for (auto& val : subExpr->As<Sum>()->m_value) {
+            Add(std::move(val));
+        }
+        return;
+    }
     m_value.emplace_back(std::move(subExpr));
 }
 

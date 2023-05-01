@@ -14,11 +14,16 @@ Product::Product(std::vector<std::unique_ptr<IExpr>>&& subExpr, Number&& coeffic
 
 void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
     if (subExpr->Is<Number>()) {
-        const auto numVal = subExpr->As<Number>();
-        m_coefficient *= numVal->GetValue();
-    } else {
-    m_value.emplace_back(std::move(subExpr));
+        m_coefficient *= subExpr->As<Number>()->GetValue();
+        return;
     }
+    if (subExpr->Is<Product>()) {
+        for (auto& val : subExpr->As<Product>()->m_value) {
+            Add(std::move(val));
+        }
+        return;
+    }
+    m_value.emplace_back(std::move(subExpr));
 }
 
 std::unique_ptr<IExpr> Product::Copy() const {
