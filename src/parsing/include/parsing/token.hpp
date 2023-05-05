@@ -16,7 +16,7 @@ struct Token {
     EType Type;
     std::string_view Value;
 
-    bool operator==(const Token& other) const noexcept { return (Type == other.Type) && (Value == other.Value); }
+    constexpr bool operator==(const Token& other) const noexcept { return (Type == other.Type) && (Value == other.Value); }
 };
 
 }
