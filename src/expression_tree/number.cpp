@@ -14,7 +14,7 @@ std::unique_ptr<IExpr> Number::Copy() const {
 }
 
 std::string Number::ToString() const {
-    return m_value.to_string();
+    return m_value.convert_to<std::string>();
 }
 
 const Number::bigint& Number::GetValue() const noexcept {
@@ -23,19 +23,19 @@ const Number::bigint& Number::GetValue() const noexcept {
 
 Number Number::Power(const bigint &other) const {
     if (other <= std::numeric_limits<int>::max()) {
-        return pow(m_value, other.to_int());
+        return boost::multiprecision::pow(m_value, other.convert_to<int>()).convert_to<bigint>();
     }
     throw exception::CalcException{"The exponent is too high"};
 }
 
-Number& Number::operator+=(const bigint& other) { m_value += other; return *this; }
-Number& Number::operator-=(const bigint& other) { m_value -= other; return *this; }
-Number& Number::operator*=(const bigint& other) { m_value *= other; return *this; }
-Number& Number::operator/=(const bigint& other) { m_value /= other; return *this; }
+Number& Number::operator+=(const Number& other) { m_value += other.m_value; return *this; }
+Number& Number::operator-=(const Number& other) { m_value -= other.m_value; return *this; }
+Number& Number::operator*=(const Number& other) { m_value *= other.m_value; return *this; }
+Number& Number::operator/=(const Number& other) { m_value /= other.m_value; return *this; }
 
-Number Number::operator+(const bigint& other) { return m_value + other; }
-Number Number::operator-(const bigint& other) { return m_value - other; }
-Number Number::operator*(const bigint& other) { return m_value * other; }
-Number Number::operator/(const bigint& other) { return m_value / other; }
+Number Number::operator+(const Number& other) { Number res = m_value; return res += other.m_value; }
+Number Number::operator-(const Number& other) { Number res = m_value; return res -= other.m_value; }
+Number Number::operator*(const Number& other) { Number res = m_value; return res *= other.m_value; }
+Number Number::operator/(const Number& other) { Number res = m_value; return res /= other.m_value; }
 
 }

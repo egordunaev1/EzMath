@@ -21,3 +21,21 @@ function(install_fmt)
     FetchContent_MakeAvailable(fmt)
     message("[fmt] Done")
 endfunction()
+
+function(install_boost)
+  message("[Boost] Fetching...")
+  include(FetchContent)
+  set(FETCHCONTENT_QUIET FALSE)
+  set(BOOST_INCLUDE_LIBRARIES program_options multiprecision)
+  set(BOOST_ENABLE_CMAKE ON)
+  FetchContent_Declare(
+    Boost
+    GIT_REPOSITORY https://github.com/boostorg/boost.git
+    GIT_TAG boost-1.82.0
+    GIT_PROGRESS TRUE
+    GIT_SHALLOW 1
+  )
+  FetchContent_MakeAvailable(Boost)
+  set(FETCHCONTENT_QUIET TRUE)
+  message("[Boost] Done")
+endfunction()

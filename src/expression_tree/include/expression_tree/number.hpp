@@ -1,13 +1,13 @@
 #pragma once
 
 #include <expression_tree/expression.hpp>
-#include <BigInt.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 
 namespace ezmath::expression_tree {
 
 class Number : public IExpr {
 public:
-    using bigint = BigInt;
+    using bigint = boost::multiprecision::cpp_int;
 
     Number() = default;
     Number(int64_t val);
@@ -22,17 +22,16 @@ public:
 
     Number Power(const bigint& other) const;
 
-    Number& operator+=(const bigint& other);
-    Number& operator-=(const bigint& other);
-    Number& operator*=(const bigint& other);
-    Number& operator/=(const bigint& other);
+    Number& operator+=(const Number& other);
+    Number& operator-=(const Number& other);
+    Number& operator*=(const Number& other);
+    Number& operator/=(const Number& other);
 
-    Number operator+(const bigint& other);
-    Number operator-(const bigint& other);
-    Number operator*(const bigint& other);
-    Number operator/(const bigint& other);
+    Number operator+(const Number& other);
+    Number operator-(const Number& other);
+    Number operator*(const Number& other);
+    Number operator/(const Number& other);
     
-
 private:
     bigint m_value;
 };
