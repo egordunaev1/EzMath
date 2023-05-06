@@ -1,18 +1,19 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <expression_tree/number.hpp>
 #include <expression_tree/power.hpp>
 #include <expression_tree/product.hpp>
 #include <expression_tree/sum.hpp>
 #include <expression_tree/symbol.hpp>
-#include <ranges>
 
 #include <concepts>
 
 namespace ezmath::expression_tree {
 
 template<class T>
-concept Expr = std::same_as<T, std::unique_ptr<IExpr>>;
+concept Expr = std::is_convertible_v<T, std::unique_ptr<IExpr>>;
 
 template<class T>
 concept NumberType = std::is_constructible_v<Number, T>;
@@ -68,6 +69,10 @@ struct Factory {
 
     static std::unique_ptr<Number> MakeNumber(NumberType auto&& val) {
         return std::make_unique<Number>(std::forward<decltype(val)>(val));
+    }
+
+    static std::unique_ptr<Number> MakeNumber(const std::string_view str) {
+        return std::make_unique<Number>(Number::bigint{str});
     }
 };
 

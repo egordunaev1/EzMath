@@ -4,10 +4,8 @@
 
 namespace ezmath::expression_tree {
 
-Sum::Sum(std::vector<std::unique_ptr<IExpr>>&& subExpr)
-    : m_value{std::make_move_iterator(subExpr.begin()), std::make_move_iterator(subExpr.end())}
-{
-    for (auto& val : m_value) {
+Sum::Sum(std::vector<std::unique_ptr<IExpr>>&& subExpr) {
+    for (auto& val : subExpr) {
         Add(std::move(val));
     }
 }
