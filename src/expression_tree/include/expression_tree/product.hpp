@@ -1,29 +1,26 @@
 #pragma once
 
 #include <expression_tree/expression.hpp>
-#include <expression_tree/number.hpp>
-
 #include <list>
 #include <vector>
 
 namespace ezmath::expression_tree {
 
-class Product : public IExpr {
+class Product : public Expression {
 public:
-    Product(std::vector<std::unique_ptr<IExpr>>&& subExpr, Number&& coefficient = 1);
-    Product();
+    Product() = default;
     
-    void Add(std::unique_ptr<IExpr>&& subExpr);
+    void Add(std::unique_ptr<Expression>&& subExpr);
 
-    std::unique_ptr<IExpr> Copy() const override;
+    std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
 
+private:
+    void ToString(std::string& res, const Expression& add) const;
+    std::string ToString(const std::vector<std::reference_wrapper<Expression>>& expressions) const;
 
 private:
-    void UpdateCoef();
-
-    Number m_coefficient;
-    std::list<std::unique_ptr<IExpr>> m_value;
+    std::list<std::unique_ptr<Expression>> m_value;
 };
 
 }

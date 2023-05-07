@@ -5,16 +5,19 @@
 
 namespace ezmath::expression_tree {
 
-class Power : public IExpr {
+class Power : public Expression {
 public:
-    Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp);
+    Power(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp);
 
-    std::unique_ptr<IExpr> Copy() const override;
+    const Expression& Base() const noexcept;
+    const Expression& Exp() const noexcept;
+
+    std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
 
 private:
-    std::unique_ptr<IExpr> m_base;
-    std::unique_ptr<IExpr> m_exp;
+    std::unique_ptr<Expression> m_base;
+    std::unique_ptr<Expression> m_exp;
 };
 
 }

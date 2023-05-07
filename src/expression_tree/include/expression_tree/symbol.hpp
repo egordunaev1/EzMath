@@ -4,11 +4,13 @@
 
 namespace ezmath::expression_tree {
 
-class Symbol : public IExpr {
+class Symbol : public Expression {
 public:
     Symbol(std::string_view s);
 
-    std::unique_ptr<IExpr> Copy() const override;
+    std::string_view Name() const noexcept;
+
+    std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
 
 private:

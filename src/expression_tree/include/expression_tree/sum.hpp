@@ -2,22 +2,23 @@
 
 #include <expression_tree/expression.hpp>
 #include <list>
-#include <vector>
 
 namespace ezmath::expression_tree {
 
-class Sum : public IExpr {
+class Sum : public Expression {
 public:
-    Sum(std::vector<std::unique_ptr<IExpr>>&& subExpr);
-    Sum() = default;
+    Sum();
     
-    void Add(std::unique_ptr<IExpr>&& subExpr);
+    void Add(std::unique_ptr<Expression>&& subExpr);
 
-    std::unique_ptr<IExpr> Copy() const override;
+    std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
 
 private:
-    std::list<std::unique_ptr<IExpr>> m_value;
+    void ToString(std::string& res, Expression& expr) const;
+
+private:
+    std::list<std::unique_ptr<Expression>> m_value;
 };
 
 }

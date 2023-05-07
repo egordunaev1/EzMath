@@ -5,7 +5,7 @@
 
 namespace ezmath::expression_tree {
 
-class Number : public IExpr {
+class Number : public Expression {
 public:
     using bigint = BigInt;
 
@@ -13,7 +13,7 @@ public:
 
     const bigint& Value() const noexcept;
 
-    std::unique_ptr<IExpr> Copy() const override;
+    std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
     
 private:

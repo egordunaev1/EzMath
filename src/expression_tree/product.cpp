@@ -1,52 +1,124 @@
-#include <expression_tree/product.hpp>
 #include <expression_tree/factory.hpp>
-#include <ranges>
 
 namespace ezmath::expression_tree {
 
-Product::Product(std::vector<std::unique_ptr<IExpr>>&& subExpr, Number&& coefficient)
-    : m_coefficient{std::move(coefficient)}
-{
-    for (auto& val : subExpr) {
-        Add(std::move(val));
+void Product::Add(std::unique_ptr<Expression>&& subExpr) {
+    if (subExpr->Sign() == -1) {
+        subExpr->ToggleSign();
+        m_sign *= -1;
     }
-}
-
-void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
     if (subExpr->Is<Product>()) {
         for (auto& val : subExpr->As<Product>()->m_value) {
             Add(std::move(val));
         }
         return;
     }
+    m_isConstant &= subExpr->IsConstant();
     m_value.emplace_back(std::move(subExpr));
 }
 
-std::unique_ptr<IExpr> Product::Copy() const {
-    std::vector<std::unique_ptr<IExpr>> newValue;
-    newValue.reserve(m_value.size());
+std::unique_ptr<Expression> Product::Copy() const {
+    auto prod = Factory::MakeProduct();
     for (const auto& val : m_value) {
-        newValue.emplace_back(val->Copy());
+        prod->Add(val->Copy());
     }
-    return Factory::MakeProduct(std::move(newValue), Number{m_coefficient});
+    return prod;
+}
+
+void Product::ToString(std::string& res, const Expression& add) const {
+    auto str = add.ToString();
+
+    bool needDelimeter = !str.empty() && !res.empty() && std::isdigit(str.front());
+    bool needBrackets = add.Is<Sum>();
+
+    if (needDelimeter) 
+        res.append(" \\cdot ");
+    if (needBrackets) 
+        res.push_back('(');
+    res.append(str);
+    if (needBrackets)
+        res.push_back(')');
+}
+
+std::string Product::ToString(const std::vector<std::reference_wrapper<Expression>>& expressions) const {
+    std::vector<std::reference_wrapper<Expression>> dividend;
+    std::vector<std::unique_ptr<Expression>> divisor;
+    for (const auto& val : expressions) {
+        if (!val.get().Is<Power>()) {
+            dividend.emplace_back(val);
+            continue;
+        }
+        
+        decltype(auto) base = val.get().As<Power>()->Base();
+        decltype(auto) exp = val.get().As<Power>()->Exp();
+        if (exp.Sign() != -1) {
+            dividend.emplace_back(val);
+            continue;
+        }
+
+        auto expCopy = exp.Copy();
+        expCopy->ToggleSign();
+        auto newDivisor = Factory::MakePower(
+            base.Copy(),
+            std::move(expCopy)
+        );
+        divisor.emplace_back(std::move(newDivisor));
+    }
+
+    if (dividend.empty() && divisor.empty()) {
+        return {};
+    }
+
+    std::string dividendStr, divisorStr;
+    std::ranges::for_each(dividend, [this, &dividendStr](const auto& expr){ ToString(dividendStr, expr.get()); });
+    std::ranges::for_each(divisor, [this, &divisorStr](const auto& expr){ ToString(divisorStr, *expr); });
+
+
+    if (dividendStr.empty())
+        dividendStr = "1";
+    if (!divisorStr.empty()) {
+        return fmt::format("\\frac{{{}}}{{{}}}", dividendStr, divisorStr);
+    }
+    return dividendStr;
 }
 
 std::string Product::ToString() const {
-    std::string res;
-    res.reserve(256);
-
-    if (m_value.empty() || m_coefficient.GetValue() != 1) {
-        res = m_coefficient.ToString();
-    }
-
+    const auto sign = (m_sign == 1) ? "" : "-";
+    
     if (m_value.empty()) {
-        return res;
+        return fmt::format("{}1", sign);
     }
+
+    if (m_value.size() == 1 && !m_value.front()->Is<Power>()) {
+        if (m_value.front()->Is<Sum>() && m_sign == -1) {
+            return fmt::format("-({})", m_value.front()->ToString());
+        }
+        return fmt::format("{}{}", sign, m_value.front()->ToString());
+    }
+
+    std::vector<std::reference_wrapper<Expression>> coefPart;
+    std::vector<std::reference_wrapper<Expression>> varPart;
 
     for (const auto& val : m_value) {
-        res.append(val->ToString());
+        if (val->IsConstant()) {
+            coefPart.emplace_back(*val);
+        } else {
+            varPart.emplace_back(*val);
+        }
     }
-    return res;
+
+    auto constStr = ToString(coefPart);
+    auto noconstStr = ToString(varPart);
+
+    if (constStr.empty())
+        return noconstStr;
+    if (noconstStr.empty()) {
+        return constStr;
+    }
+
+    const auto delimeter = std::isdigit(noconstStr.front()) ? " \\cdot " : "";
+
+    return fmt::format("{}{}{}{}", sign, constStr, delimeter, noconstStr);
 }
 
 }
