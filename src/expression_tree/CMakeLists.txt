@@ -6,7 +6,8 @@ set(TREE_SRC
     symbol.cpp
     sum.cpp
     product.cpp
-    power.cpp)
+    power.cpp
+    bigint.cpp)
 
 add_library(${PROJECT_NAME} ${TREE_SRC})
 target_include_directories(${PROJECT_NAME}

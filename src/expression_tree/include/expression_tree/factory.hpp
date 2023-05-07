@@ -67,12 +67,9 @@ struct Factory {
         return std::make_unique<Symbol>(name);
     }
 
-    static std::unique_ptr<Number> MakeNumber(NumberType auto&& val) {
-        return std::make_unique<Number>(std::forward<decltype(val)>(val));
-    }
-
-    static std::unique_ptr<Number> MakeNumber(const std::string_view str) {
-        return std::make_unique<Number>(Number::bigint{str});
+    template<class... Args>
+    static std::unique_ptr<Number> MakeNumber(Args&&... vals) requires ConstructNumber<Args...> {
+        return std::make_unique<Number>(std::forward<Args>(vals)...);
     }
 };
 
