@@ -23,7 +23,7 @@ bool Negation::IsEqualTo(const Expression& other) const {
 }
 
 std::unique_ptr<Expression> Negation::Copy() const {
-    return Factory::Negate(m_value->Copy());
+    return math::negate(m_value->Copy());
 }
 
 std::string Negation::ToString() const {

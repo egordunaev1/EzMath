@@ -66,7 +66,7 @@ std::unique_ptr<Expression> Product::Copy() const {
 
     std::vector<std::unique_ptr<Expression>> values;
     std::transform(m_value.begin(), m_value.end(), std::back_inserter(values), copy);
-    return Factory::MakeProduct(std::move(values));
+    return math::multiply(std::move(values));
 }
 
 void Product::ToString(std::string& res, const Expression& add) const {
@@ -99,7 +99,7 @@ std::string Product::ToString(const std::vector<std::reference_wrapper<Expressio
             dividend.emplace_back(val);
             continue;
         }
-        divisor.emplace_back(Factory::MakePower(base.Copy(), Factory::Negate(exp.Copy())));
+        divisor.emplace_back(math::exp(base.Copy(), math::negate(exp.Copy())));
     }
 
     if (dividend.empty() && divisor.empty()) {

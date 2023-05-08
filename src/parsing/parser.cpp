@@ -45,12 +45,12 @@ std::unique_ptr<expression_tree::Expression> Parser::ParseSum() {
     do {
         auto next = ParseProduct();
         if (sign == -1) {
-            next = Factory::Negate(std::move(next));
+            next = math::negate(std::move(next));
         }
         values.emplace_back(std::move(next));
     } while((sign = ReadSumOperator()));
 
-    return Factory::MakeSum(std::move(values));
+    return math::add(std::move(values));
 }
 
 int Parser::ReadProdOperator() {
@@ -78,11 +78,11 @@ std::unique_ptr<expression_tree::Expression> Parser::ParseProduct() {
     while (const auto power = ReadProdOperator()) {
         auto next = ParsePower();
         if (power == -1) {
-            next = Factory::MakePower(std::move(next), Factory::MakeNumber(-1));
+            next = math::exp(std::move(next), math::number(-1));
         }
         values.emplace_back(std::move(next));
     }
-    return Factory::MakeProduct(std::move(values));
+    return math::multiply(std::move(values));
 }
 
 
@@ -90,7 +90,7 @@ std::unique_ptr<expression_tree::Expression> Parser::ParsePower() {
     auto base = ParseObject();
     if (m_lexer.GetToken() == token::operation::pow) {
         m_lexer.NextToken();
-        return Factory::MakePower(std::move(base), ReadArgument());
+        return math::exp(std::move(base), ReadArgument());
     }
     return base;
 }
@@ -114,11 +114,11 @@ std::unique_ptr<expression_tree::Expression> Parser::ParseObject() {
     }
     if (token.Type == Token::EType::Number) {
         m_lexer.NextToken();
-        return Factory::MakeNumber(token.Value);
+        return math::number(token.Value);
     }
     if (token.Type == Token::EType::Symbol) {
         m_lexer.NextToken();
-        return Factory::MakeSymbol(token.Value);
+        return math::symbol(token.Value);
     }
     if (token.Type == Token::EType::Command) {
         throw exception::ParserException{"command-object is not implemented yet"};
@@ -135,12 +135,12 @@ std::unique_ptr<expression_tree::Expression> Parser::ReadArgument() {
 
     if (std::isdigit(*curChar)) {
         m_lexer.NextChar();
-        return Factory::MakeNumber(static_cast<int64_t>(*curChar - '0'));
+        return math::number(static_cast<int64_t>(*curChar - '0'));
     }
 
     if (std::isalpha(*curChar)) {
         m_lexer.NextChar();
-        return Factory::MakeSymbol(std::string_view{curChar, 1});
+        return math::symbol(std::string_view{curChar, 1});
     }
 
     if (m_lexer.GetToken() == token::bracket::curly::opening) {

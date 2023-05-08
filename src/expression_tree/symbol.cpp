@@ -13,7 +13,7 @@ bool Symbol::IsEqualTo(const Expression& other) const {
 }
 
 std::unique_ptr<Expression> Symbol::Copy() const {
-    return Factory::MakeSymbol(m_value);
+    return math::symbol(m_value);
 }
 
 std::string Symbol::ToString() const {

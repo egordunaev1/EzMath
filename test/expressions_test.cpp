@@ -11,27 +11,27 @@ protected:
     using TTree = std::unique_ptr<Expression>;
     TTree res;
 
-    TTree num(int64_t num) { return Factory::MakeNumber(num); }
-    TTree pow(TTree&& a, TTree&& b) { return Factory::MakePower(std::move(a), std::move(b)); }
-    TTree var(std::string_view s) { return Factory::MakeSymbol(s); }
+    TTree num(int64_t num) { return math::number(num); }
+    TTree pow(TTree&& a, TTree&& b) { return math::exp(std::move(a), std::move(b)); }
+    TTree var(std::string_view s) { return math::symbol(s); }
 
     TTree prod(const std::vector<TTree>& vals) {
         std::vector<TTree> values;
         for (const auto& val : vals) values.emplace_back(val->Copy());
-        return Factory::MakeProduct(std::move(values)); 
+        return math::multiply(std::move(values)); 
     }
     
     template<class... Args>
-    TTree prod(Args... args) { return Factory::MakeProduct(std::forward<Args>(args)...); }
+    TTree prod(Args... args) { return math::multiply(std::forward<Args>(args)...); }
     
     TTree sum(const std::vector<TTree>& vals) {
         std::vector<TTree> values;
         for (const auto& val : vals) values.emplace_back(val->Copy());
-        return Factory::MakeSum(std::move(values)); 
+        return math::add(std::move(values)); 
     }
     
     template<class... Args>
-    TTree sum(Args... args) { return Factory::MakeSum(std::forward<Args>(args)...); }
+    TTree sum(Args... args) { return math::add(std::forward<Args>(args)...); }
 };
 
 TEST_F(ExpressionsTest, TestEqProd) {

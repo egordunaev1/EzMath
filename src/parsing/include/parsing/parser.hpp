@@ -15,7 +15,7 @@ public:
     std::unique_ptr<expression_tree::Expression> BuildTree();
 
 private:
-    using Factory = expression_tree::Factory;
+    using math = expression_tree::math;
 
     std::unique_ptr<expression_tree::Expression> ParseExpression();
 

@@ -65,7 +65,7 @@ std::unique_ptr<Expression> Sum::Copy() const {
 
     std::vector<std::unique_ptr<Expression>> values;
     std::transform(m_value.begin(), m_value.end(), std::back_inserter(values), copy);
-    return Factory::MakeSum(std::move(values));
+    return math::add(std::move(values));
 }
 
 std::string Sum::ToString() const {

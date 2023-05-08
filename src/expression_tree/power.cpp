@@ -23,7 +23,7 @@ bool Power::IsEqualTo(const Expression& other) const {
 }
 
 std::unique_ptr<Expression> Power::Copy() const {
-    return Factory::MakePower(m_base->Copy(), m_exp->Copy());
+    return math::exp(m_base->Copy(), m_exp->Copy());
 }
 
 std::string Power::ToString() const {

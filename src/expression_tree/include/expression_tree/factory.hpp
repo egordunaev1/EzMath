@@ -16,11 +16,11 @@ namespace ezmath::expression_tree {
 template<class T>
 concept Expr = std::is_convertible_v<T, std::unique_ptr<Expression>>;
 
-struct Factory {
-    Factory() = delete;
+struct math {
+    math() = delete;
 
     template<Expr... Args>
-    static std::unique_ptr<Product> MakeProduct(Args&&... args) {
+    static std::unique_ptr<Product> multiply(Args&&... args) {
         std::unique_ptr<Expression> init[] = {std::move(args)...};
         return std::make_unique<Product>(std::vector<std::unique_ptr<Expression>>{
             std::make_move_iterator(std::begin(init)), 
@@ -28,12 +28,12 @@ struct Factory {
         });
     }
 
-    static std::unique_ptr<Product> MakeProduct(std::vector<std::unique_ptr<Expression>>&& values) {
+    static std::unique_ptr<Product> multiply(std::vector<std::unique_ptr<Expression>>&& values) {
         return std::make_unique<Product>(std::move(values));
     }
 
     template<Expr... Args>
-    static std::unique_ptr<Sum> MakeSum(Args&&... args) {
+    static std::unique_ptr<Sum> add(Args&&... args) {
         std::unique_ptr<Expression> init[] = {std::move(args)...};
         return std::make_unique<Sum>(std::vector<std::unique_ptr<Expression>>{
             std::make_move_iterator(std::begin(init)), 
@@ -41,47 +41,47 @@ struct Factory {
         });
     }
 
-    static std::unique_ptr<Sum> MakeSum(std::vector<std::unique_ptr<Expression>>&& values) {
+    static std::unique_ptr<Sum> add(std::vector<std::unique_ptr<Expression>>&& values) {
         return std::make_unique<Sum>(std::move(values));
     }
 
-    static std::unique_ptr<Power> MakePower(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp) {
+    static std::unique_ptr<Power> exp(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp) {
         return std::make_unique<Power>(std::move(base), std::move(exp));
     }
 
-    static std::unique_ptr<Symbol> MakeSymbol(const std::string_view name) {
+    static std::unique_ptr<Symbol> symbol(const std::string_view name) {
         return std::make_unique<Symbol>(name);
     }
 
-    static std::unique_ptr<Number> MakeNumber(const std::string_view str) {
+    static std::unique_ptr<Number> number(const std::string_view str) {
         return std::make_unique<Number>(str);
     }
 
-    static std::unique_ptr<Expression> MakeNumber(const int64_t val) {
-        return MakeNumber(Number::bigint{val});
+    static std::unique_ptr<Expression> number(const int64_t val) {
+        return number(Number::bigint{val});
     }
 
-    static std::unique_ptr<Expression> MakeNumber(Number::bigint val) {
-        return (val.Sign() == -1) ? MakeNegativeNumber(val) : MakePositiveNumber(val);
+    static std::unique_ptr<Expression> number(Number::bigint val) {
+        return (val.Sign() == -1) ? negative_number(val) : positive_number(val);
     }
 
     template<class T>
-    static std::unique_ptr<Number> MakePositiveNumber(T&& val) {
+    static std::unique_ptr<Number> positive_number(T&& val) {
         if (val < 0) {
-            throw exception::CalcException{"MakePositiveNumber called with negative argument"};
+            throw exception::CalcException{"positive_number called with negative argument"};
         }
         return std::make_unique<Number>(Number::bigint{std::forward<T>(val)});
     }
 
     template<class T>
-    static std::unique_ptr<Expression> MakeNegativeNumber(T&& val) {
+    static std::unique_ptr<Expression> negative_number(T&& val) {
         if (val > 0) {
-            throw exception::CalcException{"MakeNegativeNumber called with positive argument"};
+            throw exception::CalcException{"negative_number called with positive argument"};
         }
-        return Negate(MakePositiveNumber(-Number::bigint{val}));
+        return negate(positive_number(-Number::bigint{val}));
     }
 
-    static std::unique_ptr<Expression> Negate(std::unique_ptr<Expression>&& val) {
+    static std::unique_ptr<Expression> negate(std::unique_ptr<Expression>&& val) {
         return std::make_unique<Negation>(std::move(val));
     }
 };

@@ -22,7 +22,7 @@ bool Number::IsEqualTo(const Expression& other) const {
 const Number::bigint& Number::Value() const noexcept { return m_value; }
 
 std::unique_ptr<Expression> Number::Copy() const {
-    return Factory::MakeNumber(m_value);
+    return math::number(m_value);
 }
 
 std::string Number::ToString() const {
