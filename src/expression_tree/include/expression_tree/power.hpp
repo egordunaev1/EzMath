@@ -12,6 +12,8 @@ public:
     const Expression& Base() const noexcept;
     const Expression& Exp() const noexcept;
 
+    bool IsConstant() const override;
+    constexpr int Sign() const override { return 1; };
     bool IsEqualTo(const Expression& other) const override;
     std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;

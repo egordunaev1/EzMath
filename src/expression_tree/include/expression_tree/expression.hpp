@@ -8,10 +8,8 @@ class Expression {
 public:
     virtual ~Expression() = default;
 
-    constexpr void ToggleSign() { m_sign *= -1; }
-    constexpr int Sign() const { return m_sign; };
-    constexpr bool IsConstant() const { return m_isConstant; };
-
+    virtual constexpr bool IsConstant() const = 0;
+    virtual constexpr int Sign() const = 0;
     virtual bool IsEqualTo(const Expression& other) const = 0;
     virtual std::unique_ptr<Expression> Copy() const = 0;
     virtual std::string ToString() const = 0;
@@ -24,10 +22,6 @@ public:
 
     template<typename T>
     bool Is() const noexcept { return static_cast<bool>(dynamic_cast<const T*>(this)); }
-
-protected:
-    bool m_isConstant = true;
-    mutable int m_sign = 1;
 };
 
 }

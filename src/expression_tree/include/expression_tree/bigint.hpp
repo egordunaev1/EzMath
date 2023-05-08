@@ -12,6 +12,7 @@ public:
 
     BigInt(std::string_view str);
     BigInt(impl val);
+    BigInt(int64_t val);
 
     bool IsInteger() const;
     int Sign() const;
@@ -33,6 +34,10 @@ public:
         auto lcm = boost::multiprecision::lcm(m_divisor, other.m_divisor);
         auto lval = m_dividend * (m_divisor / lcm);
         auto rval = other.m_dividend * (other.m_divisor / lcm);
+        auto otmp = other.ToString();
+        auto tmp0 = ToString();
+        auto tmp1 = lval.convert_to<std::string>();
+        auto tmp2 = rval.convert_to<std::string>();
         return std::tie(lval) <=> std::tie(rval);
     }
 

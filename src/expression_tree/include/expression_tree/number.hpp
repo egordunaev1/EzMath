@@ -10,9 +10,12 @@ public:
     using bigint = BigInt;
 
     Number(bigint val);
+    Number(uint64_t val);
 
     const bigint& Value() const noexcept;
 
+    constexpr bool IsConstant() const override { return true; }
+    constexpr int Sign() const override { return 1; }
     bool IsEqualTo(const Expression& other) const override;
     std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;

@@ -1,13 +1,14 @@
 #pragma once
 
-#include <fmt/format.h>
-
+#include <expression_tree/exception.hpp>
 #include <expression_tree/number.hpp>
 #include <expression_tree/power.hpp>
 #include <expression_tree/product.hpp>
 #include <expression_tree/sum.hpp>
 #include <expression_tree/symbol.hpp>
+#include <expression_tree/negation.hpp>
 
+#include <fmt/format.h>
 #include <concepts>
 
 namespace ezmath::expression_tree {
@@ -18,32 +19,30 @@ concept Expr = std::is_convertible_v<T, std::unique_ptr<Expression>>;
 struct Factory {
     Factory() = delete;
 
-    static std::unique_ptr<Product> MakeProduct() {
-        return std::make_unique<Product>();
-    }
-
     template<Expr... Args>
     static std::unique_ptr<Product> MakeProduct(Args&&... args) {
-        auto res = MakeProduct();
         std::unique_ptr<Expression> init[] = {std::move(args)...};
-        for (auto& val : init) {
-            res->Add(std::move(val));
-        }
-        return res;
+        return std::make_unique<Product>(std::vector<std::unique_ptr<Expression>>{
+            std::make_move_iterator(std::begin(init)), 
+            std::make_move_iterator(std::end(init))
+        });
     }
 
-    static std::unique_ptr<Sum> MakeSum() {
-        return std::make_unique<Sum>();
+    static std::unique_ptr<Product> MakeProduct(std::vector<std::unique_ptr<Expression>>&& values) {
+        return std::make_unique<Product>(std::move(values));
     }
 
     template<Expr... Args>
     static std::unique_ptr<Sum> MakeSum(Args&&... args) {
-        auto res = MakeSum();
         std::unique_ptr<Expression> init[] = {std::move(args)...};
-        for (auto& val : init) {
-            res->Add(std::move(val));
-        }
-        return res;
+        return std::make_unique<Sum>(std::vector<std::unique_ptr<Expression>>{
+            std::make_move_iterator(std::begin(init)), 
+            std::make_move_iterator(std::end(init))
+        });
+    }
+
+    static std::unique_ptr<Sum> MakeSum(std::vector<std::unique_ptr<Expression>>&& values) {
+        return std::make_unique<Sum>(std::move(values));
     }
 
     static std::unique_ptr<Power> MakePower(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp) {
@@ -58,13 +57,32 @@ struct Factory {
         return std::make_unique<Number>(str);
     }
 
-    template<class T>
-    static std::unique_ptr<Number> MakeNumber(const T val) requires std::is_integral_v<T> {
-        return std::make_unique<Number>(Number::bigint{val});
+    static std::unique_ptr<Expression> MakeNumber(const int64_t val) {
+        return MakeNumber(Number::bigint{val});
     }
 
-    static std::unique_ptr<Number> MakeNumber(Number::bigint val) {
-        return std::make_unique<Number>(std::move(val));
+    static std::unique_ptr<Expression> MakeNumber(Number::bigint val) {
+        return (val.Sign() == -1) ? MakeNegativeNumber(val) : MakePositiveNumber(val);
+    }
+
+    template<class T>
+    static std::unique_ptr<Number> MakePositiveNumber(T&& val) {
+        if (val < 0) {
+            throw exception::CalcException{"MakePositiveNumber called with negative argument"};
+        }
+        return std::make_unique<Number>(Number::bigint{std::forward<T>(val)});
+    }
+
+    template<class T>
+    static std::unique_ptr<Expression> MakeNegativeNumber(T&& val) {
+        if (val > 0) {
+            throw exception::CalcException{"MakeNegativeNumber called with positive argument"};
+        }
+        return Negate(MakePositiveNumber(-Number::bigint{val}));
+    }
+
+    static std::unique_ptr<Expression> Negate(std::unique_ptr<Expression>&& val) {
+        return std::make_unique<Negation>(std::move(val));
     }
 };
 

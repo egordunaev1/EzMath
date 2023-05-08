@@ -15,8 +15,20 @@ protected:
     TTree pow(TTree&& a, TTree&& b) { return Factory::MakePower(std::move(a), std::move(b)); }
     TTree var(std::string_view s) { return Factory::MakeSymbol(s); }
 
+    TTree prod(const std::vector<TTree>& vals) {
+        std::vector<TTree> values;
+        for (const auto& val : vals) values.emplace_back(val->Copy());
+        return Factory::MakeProduct(std::move(values)); 
+    }
+    
     template<class... Args>
     TTree prod(Args... args) { return Factory::MakeProduct(std::forward<Args>(args)...); }
+    
+    TTree sum(const std::vector<TTree>& vals) {
+        std::vector<TTree> values;
+        for (const auto& val : vals) values.emplace_back(val->Copy());
+        return Factory::MakeSum(std::move(values)); 
+    }
     
     template<class... Args>
     TTree sum(Args... args) { return Factory::MakeSum(std::forward<Args>(args)...); }
@@ -29,17 +41,15 @@ TEST_F(ExpressionsTest, TestEqProd) {
 }
 
 TEST_F(ExpressionsTest, TestEqProdNoOrder) {
-    const TTree holders[] = {num(12), pow(var("x"), var("y")), var("\\alpha"), num(29)};
-    Expression* values[std::size(holders)];
-    for (size_t i = 0; i < std::size(holders); ++i) { values[i] = holders[i].get(); }
+    TTree tmp[] = {num(12), pow(var("x"), var("y")), var("\\alpha"), num(29)};
+    std::vector<TTree> values {
+        std::make_move_iterator(std::begin(tmp)),
+        std::make_move_iterator(std::end(tmp))
+    };
 
-    const auto TEST1 = prod(num(12), pow(var("x"), var("y")), var("\\alpha"), num(29));
+    const auto TEST = prod(values);
     do {
-        auto TEST2 = prod();
-        for (const auto& val : values) {
-            TEST2->As<Product>()->Add(val->Copy());
-        }
-        EXPECT_TRUE(TEST1->IsEqualTo(*TEST2));
+        EXPECT_TRUE(prod(values)->IsEqualTo(*TEST));
     } while (std::next_permutation(std::begin(values), std::end(values)));
 }
 
@@ -50,19 +60,16 @@ TEST_F(ExpressionsTest, TestEqSum) {
 }
 
 TEST_F(ExpressionsTest, TestEqSumNoOrder) {
-    const TTree holders[] = {num(12), pow(var("x"), var("y")), var("\\alpha"), num(29), 
-                            prod(num(12), pow(var("x"), var("y")), var("\\alpha"), num(29))};
-    Expression* values[std::size(holders)];
-    for (size_t i = 0; i < std::size(holders); ++i) { values[i] = holders[i].get(); }
+    TTree tmp[] = {num(12), pow(var("x"), var("y")), var("\\alpha"), num(29), 
+                        prod(num(12), pow(var("x"), var("y")), var("\\alpha"), num(29))};
+    std::vector<TTree> values {
+        std::make_move_iterator(std::begin(tmp)),
+        std::make_move_iterator(std::end(tmp))
+    };
 
-    const auto TEST1 = sum(num(12), pow(var("x"), var("y")), var("\\alpha"), num(29), 
-                                        prod(num(12), pow(var("x"), var("y")), var("\\alpha"), num(29)));
+    const auto TEST = sum(values);
     do {
-        auto TEST2 = sum();
-        for (const auto& val : values) {
-            TEST2->As<Sum>()->Add(val->Copy());
-        }
-        EXPECT_TRUE(TEST1->IsEqualTo(*TEST2));
+        EXPECT_TRUE(sum(values)->IsEqualTo(*TEST));
     } while (std::next_permutation(std::begin(values), std::end(values)));
 }
 

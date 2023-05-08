@@ -38,19 +38,19 @@ int Parser::ReadSumOperator() {
 }
 
 std::unique_ptr<expression_tree::Expression> Parser::ParseSum() {
-    auto sum = Factory::MakeSum();
+    std::vector<std::unique_ptr<expression_tree::Expression>> values;
     int sign = ReadSumOperator();
 
     if (!sign) sign = 1; // First term may not have sign
     do {
         auto next = ParseProduct();
         if (sign == -1) {
-            next = Factory::MakeProduct(Factory::MakeNumber(-1), std::move(next));
+            next = Factory::Negate(std::move(next));
         }
-        sum->Add(std::move(next));
+        values.emplace_back(std::move(next));
     } while((sign = ReadSumOperator()));
 
-    return sum;
+    return Factory::MakeSum(std::move(values));
 }
 
 int Parser::ReadProdOperator() {
@@ -74,15 +74,15 @@ int Parser::ReadProdOperator() {
 }
 
 std::unique_ptr<expression_tree::Expression> Parser::ParseProduct() {
-    auto prod = Factory::MakeProduct(ParsePower());
+    std::vector<std::unique_ptr<expression_tree::Expression>> values;
     while (const auto power = ReadProdOperator()) {
         auto next = ParsePower();
         if (power == -1) {
             next = Factory::MakePower(std::move(next), Factory::MakeNumber(-1));
         }
-        prod->Add(std::move(next));
+        values.emplace_back(std::move(next));
     }
-    return prod;
+    return Factory::MakeProduct(std::move(values));
 }
 
 

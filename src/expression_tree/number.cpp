@@ -3,15 +3,17 @@
 
 namespace ezmath::expression_tree {
 
-Number::Number(bigint val) 
+Number::Number(bigint val)
     : m_value{std::move(val)}
 {
-    m_isConstant = true;
-    if (m_value.Sign() == -1) {
-        m_value *= bigint{-1};
-        m_sign = -1;
+    if (val.Sign() == -1) {
+        throw exception::CalcException{"constructing Number class from negative number"};
     }
 }
+
+Number::Number(uint64_t val) 
+    : Number{bigint{static_cast<int64_t>(val)}}
+{}
 
 bool Number::IsEqualTo(const Expression& other) const {
     return other.Is<Number>() && (m_value == other.As<Number>()->m_value);

@@ -4,20 +4,20 @@
 
 namespace ezmath::expression_tree {
 
-class Symbol : public Expression {
+class Negation : public Expression {
 public:
-    Symbol(std::string_view s);
+    Negation(std::unique_ptr<Expression>&& val);
 
-    std::string_view Name() const noexcept;
+    const Expression& Value() const noexcept;
 
-    constexpr bool IsConstant() const override { return false; }
-    constexpr int Sign() const override { return 1; }
+    bool IsConstant() const override;
+    int Sign() const override;
     bool IsEqualTo(const Expression& other) const override;
     std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
-
+    
 private:
-    std::string_view m_value;
+    std::unique_ptr<Expression> m_value;
 };
 
 }

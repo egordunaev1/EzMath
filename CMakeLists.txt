@@ -48,5 +48,6 @@ add_subdirectory(src)
 
 if(ENABLE_TESTS)
     install_gtest()
+    enable_testing()
     add_subdirectory(test)
 endif()

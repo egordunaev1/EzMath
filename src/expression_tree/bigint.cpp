@@ -3,6 +3,13 @@
 
 namespace ezmath::expression_tree {
 
+BigInt::BigInt(int64_t val)
+    : m_dividend{val}
+    , m_divisor{1}
+{
+    Normalize();
+}
+
 BigInt::BigInt(const std::string_view str) {
     const auto point = str.find('.');
     if (point == std::string::npos) {

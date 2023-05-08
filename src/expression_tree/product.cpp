@@ -3,19 +3,35 @@
 
 namespace ezmath::expression_tree {
 
-void Product::Add(std::unique_ptr<Expression>&& subExpr) {
-    if (subExpr->Sign() == -1) {
-        subExpr->ToggleSign();
-        m_sign *= -1;
+Product::Product(std::vector<std::unique_ptr<Expression>>&& values) {
+    for (auto& val : values) {
+        Add(std::move(val));
     }
+}
+
+void Product::Add(std::unique_ptr<Expression>&& subExpr) {
     if (subExpr->Is<Product>()) {
         for (auto& val : subExpr->As<Product>()->m_value) {
             Add(std::move(val));
         }
         return;
     }
-    m_isConstant &= subExpr->IsConstant();
     m_value.emplace_back(std::move(subExpr));
+}
+
+const std::list<std::unique_ptr<Expression>>& Product::Value() const noexcept {
+    return m_value;
+}
+
+bool Product::IsConstant() const {
+    return std::all_of(m_value.begin(), m_value.end(), 
+        [](const auto& val){ return val->IsConstant(); });
+}
+
+int Product::Sign() const {
+    int sign = 1;
+    std::ranges::for_each(m_value, [&sign](const auto& val){sign *= val->Sign();});
+    return sign;
 }
 
 bool Product::IsEqualTo(const Expression& other) const {
@@ -46,11 +62,11 @@ bool Product::IsEqualTo(const Expression& other) const {
 }
 
 std::unique_ptr<Expression> Product::Copy() const {
-    auto prod = Factory::MakeProduct();
-    for (const auto& val : m_value) {
-        prod->Add(val->Copy());
-    }
-    return prod;
+    constexpr auto copy = [](const auto& val) { return val->Copy(); };
+
+    std::vector<std::unique_ptr<Expression>> values;
+    std::transform(m_value.begin(), m_value.end(), std::back_inserter(values), copy);
+    return Factory::MakeProduct(std::move(values));
 }
 
 void Product::ToString(std::string& res, const Expression& add) const {
@@ -83,14 +99,7 @@ std::string Product::ToString(const std::vector<std::reference_wrapper<Expressio
             dividend.emplace_back(val);
             continue;
         }
-
-        auto expCopy = exp.Copy();
-        expCopy->ToggleSign();
-        auto newDivisor = Factory::MakePower(
-            base.Copy(),
-            std::move(expCopy)
-        );
-        divisor.emplace_back(std::move(newDivisor));
+        divisor.emplace_back(Factory::MakePower(base.Copy(), Factory::Negate(exp.Copy())));
     }
 
     if (dividend.empty() && divisor.empty()) {
@@ -111,17 +120,12 @@ std::string Product::ToString(const std::vector<std::reference_wrapper<Expressio
 }
 
 std::string Product::ToString() const {
-    const auto sign = (m_sign == 1) ? "" : "-";
-    
     if (m_value.empty()) {
-        return fmt::format("{}1", sign);
+        return "1";
     }
 
     if (m_value.size() == 1 && !m_value.front()->Is<Power>()) {
-        if (m_value.front()->Is<Sum>() && m_sign == -1) {
-            return fmt::format("-({})", m_value.front()->ToString());
-        }
-        return fmt::format("{}{}", sign, m_value.front()->ToString());
+        return m_value.front()->ToString();
     }
 
     std::vector<std::reference_wrapper<Expression>> coefPart;
@@ -145,8 +149,7 @@ std::string Product::ToString() const {
     }
 
     const auto delimeter = std::isdigit(noconstStr.front()) ? " \\cdot " : "";
-
-    return fmt::format("{}{}{}{}", sign, constStr, delimeter, noconstStr);
+    return fmt::format("{}{}{}", constStr, delimeter, noconstStr);
 }
 
 }

@@ -4,10 +4,7 @@ namespace ezmath::expression_tree {
 
 Symbol::Symbol(const std::string_view val) 
     : m_value{val} 
-{
-    m_sign = 1;
-    m_isConstant = false;
-}
+{}
 
 std::string_view Symbol::Name() const noexcept { return m_value; }
 
