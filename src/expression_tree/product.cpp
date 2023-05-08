@@ -1,5 +1,7 @@
 #include <expression_tree/factory.hpp>
+#include <expression_tree/hash_utils.hpp>
 #include <ranges>
+#include <unordered_set>
 
 namespace ezmath::expression_tree {
 
@@ -23,6 +25,20 @@ const std::list<std::unique_ptr<IExpr>>& Product::Value() const noexcept {
     return m_value;
 }
 
+size_t Product::Hash() const {
+    constexpr size_t RANDOM_BASE = 8323215160037385666u;
+
+    if (m_bufferedHash) {
+        return m_bufferedHash;
+    }
+    
+    size_t result = RANDOM_BASE;
+    for (const auto& val : m_value) {
+        hash::combine(result, val->Hash());
+    }
+    return m_bufferedHash = result;
+}
+
 bool Product::IsConstant() const {
     return std::all_of(m_value.begin(), m_value.end(), 
         [](const auto& val){ return val->IsConstant(); });
@@ -34,31 +50,44 @@ int Product::Sign() const {
     return sign;
 }
 
+struct Wrapper {
+    Wrapper() {}
+    Wrapper(IExpr* val) : Value(val) {}
+
+    IExpr* Value;
+
+    friend bool operator==(const Wrapper& lhs, const Wrapper& rhs) { return lhs.Value->IsEqualTo(*rhs.Value); }
+};
+
+struct Hasher {
+    size_t operator()(const Wrapper& wrapper) const { return wrapper.Value->Hash(); }
+};
+
 bool Product::IsEqualTo(const IExpr& other) const {
+    if (Hash() != other.Hash()) {
+        return false;
+    }
     if (!other.Is<Product>()) {
         return false;
     }
+
     const auto otherAsProd = other.As<Product>();
     if (otherAsProd->m_value.size() != m_value.size()) {
         return false;
     }
 
-    bool isMatched[m_value.size()];
-    std::memset(&isMatched, 0, m_value.size());
-    for (const auto& val : m_value) {
-        size_t index = 0;
-        for (const auto& otherVal : otherAsProd->m_value) {
-            if (!isMatched[index] && val->IsEqualTo(*otherVal)) {
-                isMatched[index] = true;
-                break;
-            }
-            ++index;
-        }
-        if (const auto found = (index == otherAsProd->m_value.size()); found) {
-            return false;
-        }
-    }
-    return true;
+    std::unordered_multiset<Wrapper, Hasher> lhs;
+    std::unordered_multiset<Wrapper, Hasher> rhs;
+
+    lhs.reserve(m_value.size());
+    rhs.reserve(m_value.size());
+
+    for (const auto& val : m_value)
+        lhs.insert(val.get());
+    for (const auto& val : otherAsProd->m_value)
+        rhs.insert(val.get());
+
+    return lhs == rhs;
 }
 
 std::unique_ptr<IExpr> Product::Copy() const {

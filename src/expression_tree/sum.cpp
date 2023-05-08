@@ -1,4 +1,6 @@
 #include <expression_tree/factory.hpp>
+#include <expression_tree/hash_utils.hpp>
+#include <unordered_set>
 #include <ranges>
 
 namespace ezmath::expression_tree {
@@ -33,31 +35,58 @@ int Sum::Sign() const {
     return (neg == m_value.size()) ? -1 : 1;
 }
 
+struct Wrapper {
+    Wrapper() {}
+    Wrapper(IExpr* val) : Value(val) {}
+
+    IExpr* Value;
+
+    friend bool operator==(const Wrapper& lhs, const Wrapper& rhs) { return lhs.Value->IsEqualTo(*rhs.Value); }
+};
+
+struct Hasher {
+    size_t operator()(const Wrapper& wrapper) const { return wrapper.Value->Hash(); }
+};
+
 bool Sum::IsEqualTo(const IExpr& other) const {
+    if (Hash() != other.Hash()) {
+        return false;
+    }
     if (!other.Is<Sum>()) {
         return false;
     }
+
     const auto otherAsSum = other.As<Sum>();
     if (otherAsSum->m_value.size() != m_value.size()) {
         return false;
     }
 
-    bool isMatched[m_value.size()];
-    std::memset(&isMatched, 0, m_value.size());
-    for (const auto& val : m_value) {
-        size_t index = 0;
-        for (const auto& otherVal : otherAsSum->m_value) {
-            if (!isMatched[index] && val->IsEqualTo(*otherVal)) {
-                isMatched[index] = true;
-                break;
-            }
-            ++index;
-        }
-        if (const auto found = (index == otherAsSum->m_value.size()); found) {
-            return false;
-        }
+    std::unordered_multiset<Wrapper, Hasher> lhs;
+    std::unordered_multiset<Wrapper, Hasher> rhs;
+
+    lhs.reserve(m_value.size());
+    rhs.reserve(m_value.size());
+
+    for (const auto& val : m_value)
+        lhs.insert(val.get());
+    for (const auto& val : otherAsSum->m_value)
+        rhs.insert(val.get());
+
+    return lhs == rhs;
+}
+
+size_t Sum::Hash() const {
+    constexpr size_t RANDOM_BASE = 18251384670654659732u;
+
+    if (m_bufferedHash) {
+        return m_bufferedHash;
     }
-    return true;
+    
+    size_t result = RANDOM_BASE;
+    for (const auto& val : m_value) {
+        hash::combine(result, val->Hash());
+    }
+    return m_bufferedHash = result;
 }
 
 std::unique_ptr<IExpr> Sum::Copy() const {

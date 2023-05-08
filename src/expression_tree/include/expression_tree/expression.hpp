@@ -7,6 +7,7 @@ namespace ezmath::expression_tree {
 struct IExpr {
     virtual ~IExpr() = default;
 
+    virtual size_t Hash() const = 0;
     virtual constexpr bool IsConstant() const = 0;
     virtual constexpr int Sign() const = 0;
     virtual bool IsEqualTo(const IExpr& other) const = 0;

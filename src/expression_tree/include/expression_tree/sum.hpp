@@ -11,7 +11,8 @@ public:
     Sum(std::vector<std::unique_ptr<IExpr>>&& values);
 
     const std::list<std::unique_ptr<IExpr>>& Value() const noexcept;
-
+    
+    size_t Hash() const override;
     int Sign() const override;
     bool IsConstant() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -22,6 +23,7 @@ private:
     void Add(std::unique_ptr<IExpr>&& subExpr);
 
 private:
+    mutable size_t m_bufferedHash = 0;
     std::list<std::unique_ptr<IExpr>> m_value;
 };
 

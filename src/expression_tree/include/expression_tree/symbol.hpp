@@ -10,6 +10,7 @@ public:
 
     std::string_view Name() const noexcept;
 
+    size_t Hash() const override;
     constexpr bool IsConstant() const override { return false; }
     constexpr int Sign() const override { return 1; }
     bool IsEqualTo(const IExpr& other) const override;
@@ -17,6 +18,7 @@ public:
     std::string ToString() const override;
 
 private:
+    mutable size_t m_bufferedHash = 0;
     std::string_view m_value;
 };
 

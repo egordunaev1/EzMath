@@ -12,6 +12,7 @@ public:
 
     const std::list<std::unique_ptr<IExpr>>&  Value() const noexcept;
 
+    size_t Hash() const override;
     bool IsConstant() const override;
     int Sign() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -25,6 +26,7 @@ private:
     std::string ToString(const std::vector<std::reference_wrapper<IExpr>>& expressions) const;
 
 private:
+    mutable size_t m_bufferedHash = 0;
     std::list<std::unique_ptr<IExpr>> m_value;
 };
 

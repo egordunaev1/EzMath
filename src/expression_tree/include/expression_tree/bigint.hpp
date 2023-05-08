@@ -14,6 +14,8 @@ public:
     BigInt(impl val);
     BigInt(int64_t val);
 
+    size_t Hash() const;
+
     bool IsInteger() const;
     int Sign() const;
     std::string ToString() const;

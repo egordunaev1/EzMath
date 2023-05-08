@@ -1,4 +1,5 @@
 #include <expression_tree/factory.hpp>
+#include <expression_tree/hash_utils.hpp>
 
 namespace ezmath::expression_tree {
 
@@ -14,11 +15,22 @@ bool Negation::IsConstant() const {
     return m_value->IsConstant();
 }
 
+size_t Negation::Hash() const {
+    constexpr size_t RANDOM_BASE = 18406927461344389294u;
+    if (m_bufferedHash) {
+        return m_bufferedHash;
+    }
+    return m_bufferedHash = hash::combine(RANDOM_BASE, m_value->Hash());
+}
+
 int Negation::Sign() const {
     return -m_value->Sign();
 }
 
 bool Negation::IsEqualTo(const IExpr& other) const {
+    if (Hash() != other.Hash()) {
+        return false;
+    }
     return other.Is<Negation>() && other.As<Negation>()->m_value->IsEqualTo(*m_value);
 }
 

@@ -1,5 +1,6 @@
 #include <expression_tree/factory.hpp>
 #include <expression_tree/exception.hpp>
+#include <expression_tree/hash_utils.hpp>
 
 namespace ezmath::expression_tree {
 
@@ -15,7 +16,18 @@ Number::Number(uint64_t val)
     : Number{bigint{static_cast<int64_t>(val)}}
 {}
 
+size_t Number::Hash() const {
+    constexpr size_t RANDOM_BASE = 17343862609448786151u;
+    if (m_bufferedHash) {
+        return m_bufferedHash;
+    }
+    return m_bufferedHash = hash::combine(RANDOM_BASE, m_value.Hash());
+}
+
 bool Number::IsEqualTo(const IExpr& other) const {
+    if (Hash() != other.Hash()) {
+        return false;
+    }
     return other.Is<Number>() && (m_value == other.As<Number>()->m_value);
 }
 

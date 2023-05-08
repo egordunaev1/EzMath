@@ -1,4 +1,5 @@
 #include <expression_tree/bigint.hpp>
+#include <expression_tree/hash_utils.hpp>
 #include <fmt/format.h>
 
 namespace ezmath::expression_tree {
@@ -40,6 +41,13 @@ BigInt::BigInt(impl dividend, impl divisor)
     , m_divisor{std::move(divisor)}
 {
     Normalize();
+}
+
+size_t BigInt::Hash() const {
+    return hash::combine(
+        boost::multiprecision::hash_value(m_dividend),
+        boost::multiprecision::hash_value(m_divisor)
+    );
 }
 
 bool BigInt::IsInteger() const {

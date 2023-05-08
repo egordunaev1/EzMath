@@ -12,6 +12,7 @@ public:
     const IExpr& Base() const noexcept;
     const IExpr& Exp() const noexcept;
 
+    size_t Hash() const override;
     bool IsConstant() const override;
     constexpr int Sign() const override { return 1; };
     bool IsEqualTo(const IExpr& other) const override;
@@ -19,6 +20,7 @@ public:
     std::string ToString() const override;
 
 private:
+    mutable size_t m_bufferedHash = 0;
     std::unique_ptr<IExpr> m_base;
     std::unique_ptr<IExpr> m_exp;
 };

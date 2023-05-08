@@ -14,6 +14,7 @@ public:
 
     const bigint& Value() const noexcept;
 
+    size_t Hash() const override;
     constexpr bool IsConstant() const override { return true; }
     constexpr int Sign() const override { return 1; }
     bool IsEqualTo(const IExpr& other) const override;
@@ -21,6 +22,7 @@ public:
     std::string ToString() const override;
     
 private:
+    mutable size_t m_bufferedHash = 0;
     bigint m_value;
 };
 
