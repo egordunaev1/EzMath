@@ -12,6 +12,7 @@ public:
     constexpr int Sign() const { return m_sign; };
     constexpr bool IsConstant() const { return m_isConstant; };
 
+    virtual bool IsEqualTo(const Expression& other) const = 0;
     virtual std::unique_ptr<Expression> Copy() const = 0;
     virtual std::string ToString() const = 0;
 

@@ -13,6 +13,10 @@ Number::Number(bigint val)
     }
 }
 
+bool Number::IsEqualTo(const Expression& other) const {
+    return other.Is<Number>() && (m_value == other.As<Number>()->m_value);
+}
+
 const Number::bigint& Number::Value() const noexcept { return m_value; }
 
 std::unique_ptr<Expression> Number::Copy() const {

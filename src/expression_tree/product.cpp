@@ -1,4 +1,5 @@
 #include <expression_tree/factory.hpp>
+#include <ranges>
 
 namespace ezmath::expression_tree {
 
@@ -15,6 +16,33 @@ void Product::Add(std::unique_ptr<Expression>&& subExpr) {
     }
     m_isConstant &= subExpr->IsConstant();
     m_value.emplace_back(std::move(subExpr));
+}
+
+bool Product::IsEqualTo(const Expression& other) const {
+    if (!other.Is<Product>()) {
+        return false;
+    }
+    const auto otherAsProd = other.As<Product>();
+    if (otherAsProd->m_value.size() != m_value.size()) {
+        return false;
+    }
+
+    bool isMatched[m_value.size()];
+    std::memset(&isMatched, 0, m_value.size());
+    for (const auto& val : m_value) {
+        size_t index = 0;
+        for (const auto& otherVal : otherAsProd->m_value) {
+            if (!isMatched[index] && val->IsEqualTo(*otherVal)) {
+                isMatched[index] = true;
+                break;
+            }
+            ++index;
+        }
+        if (const auto found = (index == otherAsProd->m_value.size()); found) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::unique_ptr<Expression> Product::Copy() const {

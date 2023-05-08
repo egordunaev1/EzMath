@@ -11,6 +11,7 @@ public:
     
     void Add(std::unique_ptr<Expression>&& subExpr);
 
+    bool IsEqualTo(const Expression& other) const override;
     std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
 

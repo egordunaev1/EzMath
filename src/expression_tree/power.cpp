@@ -15,6 +15,12 @@ const Expression& Power::Base() const noexcept { return *m_base; }
 
 const Expression& Power::Exp() const noexcept { return *m_exp; }
 
+bool Power::IsEqualTo(const Expression& other) const {
+    return other.Is<Power>() 
+        && m_base->IsEqualTo(*other.As<Power>()->m_base)
+        && m_exp->IsEqualTo(*other.As<Power>()->m_exp);
+}
+
 std::unique_ptr<Expression> Power::Copy() const {
     return Factory::MakePower(m_base->Copy(), m_exp->Copy());
 }

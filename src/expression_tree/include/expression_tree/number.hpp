@@ -13,6 +13,7 @@ public:
 
     const bigint& Value() const noexcept;
 
+    bool IsEqualTo(const Expression& other) const override;
     std::unique_ptr<Expression> Copy() const override;
     std::string ToString() const override;
     

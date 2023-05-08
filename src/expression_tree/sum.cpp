@@ -6,7 +6,6 @@ Sum::Sum() {
     m_sign = -1;
 }
 
-
 void Sum::Add(std::unique_ptr<Expression>&& subExpr) {
     if (subExpr->Is<Sum>()) {
         for (auto& val : subExpr->As<Sum>()->m_value) {
@@ -29,6 +28,33 @@ void Sum::Add(std::unique_ptr<Expression>&& subExpr) {
 
     m_isConstant &= subExpr->IsConstant();
     m_value.emplace_back(std::move(subExpr));
+}
+
+bool Sum::IsEqualTo(const Expression& other) const {
+    if (!other.Is<Sum>()) {
+        return false;
+    }
+    const auto otherAsSum = other.As<Sum>();
+    if (otherAsSum->m_value.size() != m_value.size()) {
+        return false;
+    }
+
+    bool isMatched[m_value.size()];
+    std::memset(&isMatched, 0, m_value.size());
+    for (const auto& val : m_value) {
+        size_t index = 0;
+        for (const auto& otherVal : otherAsSum->m_value) {
+            if (!isMatched[index] && val->IsEqualTo(*otherVal)) {
+                isMatched[index] = true;
+                break;
+            }
+            ++index;
+        }
+        if (const auto found = (index == otherAsSum->m_value.size()); found) {
+            return false;
+        }
+    }
+    return true;
 }
 
 std::unique_ptr<Expression> Sum::Copy() const {

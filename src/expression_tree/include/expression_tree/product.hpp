@@ -16,6 +16,7 @@ public:
     std::string ToString() const override;
 
 private:
+    bool IsEqualTo(const Expression& other) const override;
     void ToString(std::string& res, const Expression& add) const;
     std::string ToString(const std::vector<std::reference_wrapper<Expression>>& expressions) const;
 

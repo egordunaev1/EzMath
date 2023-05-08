@@ -11,6 +11,10 @@ Symbol::Symbol(const std::string_view val)
 
 std::string_view Symbol::Name() const noexcept { return m_value; }
 
+bool Symbol::IsEqualTo(const Expression& other) const {
+    return other.Is<Symbol>() && (m_value == other.As<Symbol>()->m_value);
+}
+
 std::unique_ptr<Expression> Symbol::Copy() const {
     return Factory::MakeSymbol(m_value);
 }
