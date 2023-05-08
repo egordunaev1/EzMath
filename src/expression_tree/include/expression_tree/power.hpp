@@ -5,22 +5,22 @@
 
 namespace ezmath::expression_tree {
 
-class Power : public Expression {
+class Power : public IExpr {
 public:
-    Power(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp);
+    Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp);
 
-    const Expression& Base() const noexcept;
-    const Expression& Exp() const noexcept;
+    const IExpr& Base() const noexcept;
+    const IExpr& Exp() const noexcept;
 
     bool IsConstant() const override;
     constexpr int Sign() const override { return 1; };
-    bool IsEqualTo(const Expression& other) const override;
-    std::unique_ptr<Expression> Copy() const override;
+    bool IsEqualTo(const IExpr& other) const override;
+    std::unique_ptr<IExpr> Copy() const override;
     std::string ToString() const override;
 
 private:
-    std::unique_ptr<Expression> m_base;
-    std::unique_ptr<Expression> m_exp;
+    std::unique_ptr<IExpr> m_base;
+    std::unique_ptr<IExpr> m_exp;
 };
 
 }

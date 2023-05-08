@@ -12,26 +12,26 @@ public:
     Parser(Parser&&) = default;
     Parser(const Parser&) = delete;
 
-    std::unique_ptr<expression_tree::Expression> BuildTree();
+    std::unique_ptr<expression_tree::IExpr> BuildTree();
 
 private:
     using math = expression_tree::math;
 
-    std::unique_ptr<expression_tree::Expression> ParseExpression();
+    std::unique_ptr<expression_tree::IExpr> ParseExpression();
 
     int ReadSumOperator();
-    std::unique_ptr<expression_tree::Expression> ParseSum();
+    std::unique_ptr<expression_tree::IExpr> ParseSum();
     
     int ReadProdOperator();
-    std::unique_ptr<expression_tree::Expression> ParseProduct();
+    std::unique_ptr<expression_tree::IExpr> ParseProduct();
     
-    std::unique_ptr<expression_tree::Expression> ParsePower();
-    std::unique_ptr<expression_tree::Expression> ParseObject();
-    std::unique_ptr<expression_tree::Expression> ReadArgument();
+    std::unique_ptr<expression_tree::IExpr> ParsePower();
+    std::unique_ptr<expression_tree::IExpr> ParseObject();
+    std::unique_ptr<expression_tree::IExpr> ReadArgument();
 
     Lexer m_lexer;
 };
 
-std::unique_ptr<expression_tree::Expression> ParseTree(const std::string_view str);
+std::unique_ptr<expression_tree::IExpr> ParseTree(const std::string_view str);
 
 }

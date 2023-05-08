@@ -3,13 +3,13 @@
 
 namespace ezmath::expression_tree {
 
-Product::Product(std::vector<std::unique_ptr<Expression>>&& values) {
+Product::Product(std::vector<std::unique_ptr<IExpr>>&& values) {
     for (auto& val : values) {
         Add(std::move(val));
     }
 }
 
-void Product::Add(std::unique_ptr<Expression>&& subExpr) {
+void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
     if (subExpr->Is<Product>()) {
         for (auto& val : subExpr->As<Product>()->m_value) {
             Add(std::move(val));
@@ -19,7 +19,7 @@ void Product::Add(std::unique_ptr<Expression>&& subExpr) {
     m_value.emplace_back(std::move(subExpr));
 }
 
-const std::list<std::unique_ptr<Expression>>& Product::Value() const noexcept {
+const std::list<std::unique_ptr<IExpr>>& Product::Value() const noexcept {
     return m_value;
 }
 
@@ -34,7 +34,7 @@ int Product::Sign() const {
     return sign;
 }
 
-bool Product::IsEqualTo(const Expression& other) const {
+bool Product::IsEqualTo(const IExpr& other) const {
     if (!other.Is<Product>()) {
         return false;
     }
@@ -61,15 +61,15 @@ bool Product::IsEqualTo(const Expression& other) const {
     return true;
 }
 
-std::unique_ptr<Expression> Product::Copy() const {
+std::unique_ptr<IExpr> Product::Copy() const {
     constexpr auto copy = [](const auto& val) { return val->Copy(); };
 
-    std::vector<std::unique_ptr<Expression>> values;
+    std::vector<std::unique_ptr<IExpr>> values;
     std::transform(m_value.begin(), m_value.end(), std::back_inserter(values), copy);
     return math::multiply(std::move(values));
 }
 
-void Product::ToString(std::string& res, const Expression& add) const {
+void Product::ToString(std::string& res, const IExpr& add) const {
     auto str = add.ToString();
 
     bool needDelimeter = !str.empty() && !res.empty() && std::isdigit(str.front());
@@ -84,9 +84,9 @@ void Product::ToString(std::string& res, const Expression& add) const {
         res.push_back(')');
 }
 
-std::string Product::ToString(const std::vector<std::reference_wrapper<Expression>>& expressions) const {
-    std::vector<std::reference_wrapper<Expression>> dividend;
-    std::vector<std::unique_ptr<Expression>> divisor;
+std::string Product::ToString(const std::vector<std::reference_wrapper<IExpr>>& expressions) const {
+    std::vector<std::reference_wrapper<IExpr>> dividend;
+    std::vector<std::unique_ptr<IExpr>> divisor;
     for (const auto& val : expressions) {
         if (!val.get().Is<Power>()) {
             dividend.emplace_back(val);
@@ -128,8 +128,8 @@ std::string Product::ToString() const {
         return m_value.front()->ToString();
     }
 
-    std::vector<std::reference_wrapper<Expression>> coefPart;
-    std::vector<std::reference_wrapper<Expression>> varPart;
+    std::vector<std::reference_wrapper<IExpr>> coefPart;
+    std::vector<std::reference_wrapper<IExpr>> varPart;
 
     for (const auto& val : m_value) {
         if (val->IsConstant()) {

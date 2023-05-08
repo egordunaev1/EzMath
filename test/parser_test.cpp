@@ -9,7 +9,7 @@ using namespace expression_tree;
 
 class ParserTest : public ::testing::Test {
 protected:
-    using TTree = std::unique_ptr<Expression>;
+    using TTree = std::unique_ptr<IExpr>;
     TTree res;
 };
 

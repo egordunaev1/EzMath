@@ -2,11 +2,11 @@
 
 namespace ezmath::expression_tree {
 
-Negation::Negation(std::unique_ptr<Expression>&& val)
+Negation::Negation(std::unique_ptr<IExpr>&& val)
     : m_value{std::move(val)}
 {}
 
-const Expression& Negation::Value() const noexcept {
+const IExpr& Negation::Value() const noexcept {
     return *m_value;
 }
 
@@ -18,11 +18,11 @@ int Negation::Sign() const {
     return -m_value->Sign();
 }
 
-bool Negation::IsEqualTo(const Expression& other) const {
+bool Negation::IsEqualTo(const IExpr& other) const {
     return other.Is<Negation>() && other.As<Negation>()->m_value->IsEqualTo(*m_value);
 }
 
-std::unique_ptr<Expression> Negation::Copy() const {
+std::unique_ptr<IExpr> Negation::Copy() const {
     return math::negate(m_value->Copy());
 }
 

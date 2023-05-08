@@ -4,7 +4,7 @@
 
 namespace ezmath::expression_tree {
 
-class Symbol : public Expression {
+class Symbol : public IExpr {
 public:
     Symbol(std::string_view s);
 
@@ -12,8 +12,8 @@ public:
 
     constexpr bool IsConstant() const override { return false; }
     constexpr int Sign() const override { return 1; }
-    bool IsEqualTo(const Expression& other) const override;
-    std::unique_ptr<Expression> Copy() const override;
+    bool IsEqualTo(const IExpr& other) const override;
+    std::unique_ptr<IExpr> Copy() const override;
     std::string ToString() const override;
 
 private:

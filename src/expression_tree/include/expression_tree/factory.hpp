@@ -14,38 +14,38 @@
 namespace ezmath::expression_tree {
 
 template<class T>
-concept Expr = std::is_convertible_v<T, std::unique_ptr<Expression>>;
+concept Expr = std::is_convertible_v<T, std::unique_ptr<IExpr>>;
 
 struct math {
     math() = delete;
 
     template<Expr... Args>
     static std::unique_ptr<Product> multiply(Args&&... args) {
-        std::unique_ptr<Expression> init[] = {std::move(args)...};
-        return std::make_unique<Product>(std::vector<std::unique_ptr<Expression>>{
+        std::unique_ptr<IExpr> init[] = {std::move(args)...};
+        return std::make_unique<Product>(std::vector<std::unique_ptr<IExpr>>{
             std::make_move_iterator(std::begin(init)), 
             std::make_move_iterator(std::end(init))
         });
     }
 
-    static std::unique_ptr<Product> multiply(std::vector<std::unique_ptr<Expression>>&& values) {
+    static std::unique_ptr<Product> multiply(std::vector<std::unique_ptr<IExpr>>&& values) {
         return std::make_unique<Product>(std::move(values));
     }
 
     template<Expr... Args>
     static std::unique_ptr<Sum> add(Args&&... args) {
-        std::unique_ptr<Expression> init[] = {std::move(args)...};
-        return std::make_unique<Sum>(std::vector<std::unique_ptr<Expression>>{
+        std::unique_ptr<IExpr> init[] = {std::move(args)...};
+        return std::make_unique<Sum>(std::vector<std::unique_ptr<IExpr>>{
             std::make_move_iterator(std::begin(init)), 
             std::make_move_iterator(std::end(init))
         });
     }
 
-    static std::unique_ptr<Sum> add(std::vector<std::unique_ptr<Expression>>&& values) {
+    static std::unique_ptr<Sum> add(std::vector<std::unique_ptr<IExpr>>&& values) {
         return std::make_unique<Sum>(std::move(values));
     }
 
-    static std::unique_ptr<Power> exp(std::unique_ptr<Expression>&& base, std::unique_ptr<Expression>&& exp) {
+    static std::unique_ptr<Power> exp(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp) {
         return std::make_unique<Power>(std::move(base), std::move(exp));
     }
 
@@ -57,11 +57,11 @@ struct math {
         return std::make_unique<Number>(str);
     }
 
-    static std::unique_ptr<Expression> number(const int64_t val) {
+    static std::unique_ptr<IExpr> number(const int64_t val) {
         return number(Number::bigint{val});
     }
 
-    static std::unique_ptr<Expression> number(Number::bigint val) {
+    static std::unique_ptr<IExpr> number(Number::bigint val) {
         return (val.Sign() == -1) ? negative_number(val) : positive_number(val);
     }
 
@@ -74,14 +74,14 @@ struct math {
     }
 
     template<class T>
-    static std::unique_ptr<Expression> negative_number(T&& val) {
+    static std::unique_ptr<IExpr> negative_number(T&& val) {
         if (val > 0) {
             throw exception::CalcException{"negative_number called with positive argument"};
         }
         return negate(positive_number(-Number::bigint{val}));
     }
 
-    static std::unique_ptr<Expression> negate(std::unique_ptr<Expression>&& val) {
+    static std::unique_ptr<IExpr> negate(std::unique_ptr<IExpr>&& val) {
         return std::make_unique<Negation>(std::move(val));
     }
 };

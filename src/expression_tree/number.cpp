@@ -15,13 +15,13 @@ Number::Number(uint64_t val)
     : Number{bigint{static_cast<int64_t>(val)}}
 {}
 
-bool Number::IsEqualTo(const Expression& other) const {
+bool Number::IsEqualTo(const IExpr& other) const {
     return other.Is<Number>() && (m_value == other.As<Number>()->m_value);
 }
 
 const Number::bigint& Number::Value() const noexcept { return m_value; }
 
-std::unique_ptr<Expression> Number::Copy() const {
+std::unique_ptr<IExpr> Number::Copy() const {
     return math::number(m_value);
 }
 

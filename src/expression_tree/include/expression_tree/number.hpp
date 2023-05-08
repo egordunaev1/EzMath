@@ -5,7 +5,7 @@
 
 namespace ezmath::expression_tree {
 
-class Number : public Expression {
+class Number : public IExpr {
 public:
     using bigint = BigInt;
 
@@ -16,8 +16,8 @@ public:
 
     constexpr bool IsConstant() const override { return true; }
     constexpr int Sign() const override { return 1; }
-    bool IsEqualTo(const Expression& other) const override;
-    std::unique_ptr<Expression> Copy() const override;
+    bool IsEqualTo(const IExpr& other) const override;
+    std::unique_ptr<IExpr> Copy() const override;
     std::string ToString() const override;
     
 private:

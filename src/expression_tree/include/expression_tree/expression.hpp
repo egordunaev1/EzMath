@@ -4,14 +4,13 @@
 
 namespace ezmath::expression_tree {
 
-class Expression {
-public:
-    virtual ~Expression() = default;
+struct IExpr {
+    virtual ~IExpr() = default;
 
     virtual constexpr bool IsConstant() const = 0;
     virtual constexpr int Sign() const = 0;
-    virtual bool IsEqualTo(const Expression& other) const = 0;
-    virtual std::unique_ptr<Expression> Copy() const = 0;
+    virtual bool IsEqualTo(const IExpr& other) const = 0;
+    virtual std::unique_ptr<IExpr> Copy() const = 0;
     virtual std::string ToString() const = 0;
 
     template<typename T>

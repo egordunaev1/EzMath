@@ -3,13 +3,13 @@
 
 namespace ezmath::expression_tree {
 
-Sum::Sum(std::vector<std::unique_ptr<Expression>>&& values) {
+Sum::Sum(std::vector<std::unique_ptr<IExpr>>&& values) {
     for (auto& val : values) {
         Add(std::move(val));
     }
 }
 
-void Sum::Add(std::unique_ptr<Expression>&& subExpr) {
+void Sum::Add(std::unique_ptr<IExpr>&& subExpr) {
     if (subExpr->Is<Sum>()) {
         for (auto& val : subExpr->As<Sum>()->m_value) {
             Add(std::move(val));
@@ -19,7 +19,7 @@ void Sum::Add(std::unique_ptr<Expression>&& subExpr) {
     m_value.emplace_back(std::move(subExpr));
 }
 
-const std::list<std::unique_ptr<Expression>>& Sum::Value() const noexcept {
+const std::list<std::unique_ptr<IExpr>>& Sum::Value() const noexcept {
     return m_value;
 }
 
@@ -33,7 +33,7 @@ int Sum::Sign() const {
     return (neg == m_value.size()) ? -1 : 1;
 }
 
-bool Sum::IsEqualTo(const Expression& other) const {
+bool Sum::IsEqualTo(const IExpr& other) const {
     if (!other.Is<Sum>()) {
         return false;
     }
@@ -60,10 +60,10 @@ bool Sum::IsEqualTo(const Expression& other) const {
     return true;
 }
 
-std::unique_ptr<Expression> Sum::Copy() const {
+std::unique_ptr<IExpr> Sum::Copy() const {
     constexpr auto copy = [](const auto& val) { return val->Copy(); };
 
-    std::vector<std::unique_ptr<Expression>> values;
+    std::vector<std::unique_ptr<IExpr>> values;
     std::transform(m_value.begin(), m_value.end(), std::back_inserter(values), copy);
     return math::add(std::move(values));
 }
