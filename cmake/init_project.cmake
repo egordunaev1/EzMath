@@ -34,7 +34,7 @@ function(init_compile_options)
         list(APPEND CXX_FLAGS_DEBUG "-fno-limit-debug-info" "-fcolor-diagnostics")
     endif()
 
-    if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    if (NOT ${CMAKE_BUILD_TYPE} OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
         list(APPEND CXX_FLAGS ${CXX_FLAGS_DEBUG})
     elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         list(APPEND CXX_FLAGS ${CXX_FLAGS_RELEASE})

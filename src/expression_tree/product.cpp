@@ -77,12 +77,7 @@ const std::vector<std::unique_ptr<IExpr>>& Product::Value() const noexcept {
 
 size_t Product::HashImpl() const {
     constexpr size_t RANDOM_BASE = 8323215160037385666u;
-    
-    size_t result = RANDOM_BASE;
-    for (const auto& val : m_value) {
-        hash::combine(result, val->Hash());
-    }
-    return result;
+    return hash::asymmetric_hash(RANDOM_BASE, m_value);
 }
 
 bool Product::IsConstant() const {
@@ -95,19 +90,6 @@ int Product::Sign() const {
     std::ranges::for_each(m_value, [&sign](const auto& val){sign *= val->Sign();});
     return sign;
 }
-
-struct Wrapper {
-    Wrapper() {}
-    Wrapper(IExpr* val) : Value(val) {}
-
-    IExpr* Value;
-
-    friend bool operator==(const Wrapper& lhs, const Wrapper& rhs) { return lhs.Value->IsEqualTo(*rhs.Value); }
-};
-
-struct Hasher {
-    size_t operator()(const Wrapper& wrapper) const { return wrapper.Value->Hash(); }
-};
 
 bool Product::IsEqualTo(const IExpr& other) const {
     if (Hash() != other.Hash()) {
@@ -122,8 +104,8 @@ bool Product::IsEqualTo(const IExpr& other) const {
         return false;
     }
 
-    std::unordered_multiset<Wrapper, Hasher> lhs;
-    std::unordered_multiset<Wrapper, Hasher> rhs;
+    std::unordered_multiset<hash::Wrapper, hash::Hasher> lhs;
+    std::unordered_multiset<hash::Wrapper, hash::Hasher> rhs;
 
     lhs.reserve(m_value.size());
     rhs.reserve(m_value.size());

@@ -92,7 +92,7 @@ TEST_F(LexerTest, TestCommand) {
     };
     ExpectSuccess(TEST, ANSW);
 
-    for (char cc = 1; cc < 128; ++cc) {
+    for (char cc = 1; cc < std::numeric_limits<char>::max(); ++cc) {
         if (cc == '\\') continue;
         if (std::isalpha(cc)) {
             const std::string TEST = std::string{"\\"} + cc;
@@ -111,7 +111,7 @@ TEST_F(LexerTest, TestCommand) {
 
 TEST_F(LexerTest, TestSymbol) {
     TAnsw tmp;
-    for (char cc = 1; cc < 128; ++cc) {
+    for (char cc = 1; cc < std::numeric_limits<char>::max(); ++cc) {
         const std::string TEST = std::string{} + cc;
         if (std::isalpha(cc)) {
             TAnsw ANSW = {
@@ -133,7 +133,7 @@ TEST_F(LexerTest, TestSymbol) {
 
 TEST_F(LexerTest, TestBracket) {
     TAnsw tmp;
-    for (char cc = 1; cc < 128; ++cc) {
+    for (char cc = 1; cc < std::numeric_limits<char>::max(); ++cc) {
         const std::string TEST = std::string{} + cc;
         if (Lexer::BRACKETS.contains(cc)) {
             TAnsw ANSW = {
@@ -155,7 +155,7 @@ TEST_F(LexerTest, TestBracket) {
 
 TEST_F(LexerTest, TestOperator) {
     TAnsw tmp;
-    for (char cc = 1; cc < 128; ++cc) {
+    for (char cc = 1; cc < std::numeric_limits<char>::max(); ++cc) {
         const std::string TEST = std::string{} + cc;
         if (Lexer::OPERATORS.contains(cc)) {
             TAnsw ANSW = {

@@ -66,19 +66,6 @@ int Sum::Sign() const {
     return (neg == m_value.size()) ? -1 : 1;
 }
 
-struct Wrapper {
-    Wrapper() {}
-    Wrapper(IExpr* val) : Value(val) {}
-
-    IExpr* Value;
-
-    friend bool operator==(const Wrapper& lhs, const Wrapper& rhs) { return lhs.Value->IsEqualTo(*rhs.Value); }
-};
-
-struct Hasher {
-    size_t operator()(const Wrapper& wrapper) const { return wrapper.Value->Hash(); }
-};
-
 bool Sum::IsEqualTo(const IExpr& other) const {
     if (Hash() != other.Hash()) {
         return false;
@@ -92,8 +79,8 @@ bool Sum::IsEqualTo(const IExpr& other) const {
         return false;
     }
 
-    std::unordered_multiset<Wrapper, Hasher> lhs;
-    std::unordered_multiset<Wrapper, Hasher> rhs;
+    std::unordered_multiset<hash::Wrapper, hash::Hasher> lhs;
+    std::unordered_multiset<hash::Wrapper, hash::Hasher> rhs;
 
     lhs.reserve(m_value.size());
     rhs.reserve(m_value.size());
@@ -108,12 +95,7 @@ bool Sum::IsEqualTo(const IExpr& other) const {
 
 size_t Sum::HashImpl() const {
     constexpr size_t RANDOM_BASE = 18251384670654659732u;   
-
-    size_t result = RANDOM_BASE;
-    for (const auto& val : m_value) {
-        hash::combine(result, val->Hash());
-    }
-    return result;
+    return hash::asymmetric_hash(RANDOM_BASE, m_value);
 }
 
 std::unique_ptr<IExpr> Sum::Copy() const {

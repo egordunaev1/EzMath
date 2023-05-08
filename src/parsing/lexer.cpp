@@ -46,12 +46,12 @@ Token Read2SOrCommand(const std::string_view str) {
         : ReadCommand(str);
 }
 
-constexpr static std::array<THandler, 128> handlers = []() constexpr {
+constexpr static std::array<THandler, std::numeric_limits<char>::max() + 1> handlers = []() constexpr {
     constexpr auto isDigit = [](const char cc){ return '0' <= cc && cc <= '9'; };
     constexpr auto isAlpha = [](const char cc){ return ('a' <= cc && cc <= 'z') || ('A' <= cc && cc <= 'Z'); };
 
-    std::array<THandler, 128> result{};
-    for (char cc = 0; cc < 128; ++cc) {
+    std::array<THandler, std::numeric_limits<char>::max() + 1> result{};
+    for (char cc = 0; cc < std::numeric_limits<char>::max(); ++cc) {
         if (Lexer::BRACKETS.contains(cc)) {
             result[cc] = [](std::string_view s){ 
                 return Token{Token::EType::Bracket, s.substr(0, 1)}; 

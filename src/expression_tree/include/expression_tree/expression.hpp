@@ -27,9 +27,7 @@ struct IExpr {
 class BaseExpression : public IExpr {
 public:
     size_t Hash() const final {
-        return m_bufferedHash
-             ? m_bufferedHash
-             : HashImpl();
+        return m_bufferedHash = (m_bufferedHash ? m_bufferedHash : HashImpl());
     }
 
 protected:
