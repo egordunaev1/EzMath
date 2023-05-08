@@ -4,13 +4,15 @@
 
 namespace ezmath::expression_tree {
 
-class Symbol : public IExpr {
+class Symbol : public BaseExpression {
 public:
     Symbol(std::string_view s);
 
+    void SetName(std::string_view s);
+
     std::string_view Name() const noexcept;
 
-    size_t Hash() const override;
+    size_t HashImpl() const override;
     constexpr bool IsConstant() const override { return false; }
     constexpr int Sign() const override { return 1; }
     bool IsEqualTo(const IExpr& other) const override;
@@ -18,7 +20,6 @@ public:
     std::string ToString() const override;
 
 private:
-    mutable size_t m_bufferedHash = 0;
     std::string_view m_value;
 };
 

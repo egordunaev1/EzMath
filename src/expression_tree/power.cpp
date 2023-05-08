@@ -9,16 +9,23 @@ Power::Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp)
     , m_exp{std::move(exp)}
 {}
 
+void Power::SetBase(std::unique_ptr<IExpr>&& base) {
+    m_base = std::move(base);
+    OnChange();
+}
+
+void Power::SetExp(std::unique_ptr<IExpr>&& base) {
+    m_exp = std::move(base);
+    OnChange();
+}
+
 const IExpr& Power::Base() const noexcept { return *m_base; }
 
 const IExpr& Power::Exp() const noexcept { return *m_exp; }
 
-size_t Power::Hash() const {
+size_t Power::HashImpl() const {
     constexpr size_t RANDOM_BASE = 17690554549982570371u;
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
-    return m_bufferedHash = hash::combine(RANDOM_BASE, m_base->Hash(), m_exp->Hash());
+    return hash::combine(RANDOM_BASE, m_base->Hash(), m_exp->Hash());
 }
 
 bool Power::IsConstant() const {

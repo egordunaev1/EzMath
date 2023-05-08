@@ -4,13 +4,15 @@
 
 namespace ezmath::expression_tree {
 
-class Negation : public IExpr {
+class Negation : public BaseExpression {
 public:
     Negation(std::unique_ptr<IExpr>&& val);
 
+    void Set(std::unique_ptr<IExpr>&& val);
+
     const IExpr& Value() const noexcept;
 
-    size_t Hash() const override;
+    size_t HashImpl() const override;
     bool IsConstant() const override;
     int Sign() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -18,7 +20,6 @@ public:
     std::string ToString() const override;
     
 private:
-    mutable size_t m_bufferedHash = 0;
     std::unique_ptr<IExpr> m_value;
 };
 

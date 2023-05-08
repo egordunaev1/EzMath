@@ -21,9 +21,40 @@ void Sum::Add(std::unique_ptr<IExpr>&& subExpr) {
     m_value.emplace_back(std::move(subExpr));
 }
 
-const std::list<std::unique_ptr<IExpr>>& Sum::Value() const noexcept {
+void Sum::Set(size_t index, std::unique_ptr<IExpr>&& value) {
+    m_value[index] = std::move(value);
+    OnChange();
+}
+
+void Sum::Erase(size_t index) {
+    m_value.erase(m_value.begin() + index);
+    OnChange();
+}
+
+void Sum::AddTerm(std::unique_ptr<IExpr>&& value) {
+    Add(std::move(value));
+    OnChange();
+}
+
+void Sum::Add(std::unique_ptr<Sum>&& other) {
+    for (auto& val : other->m_value) {
+        Add(std::move(val));
+    }
+    OnChange();
+}
+
+size_t Sum::Size() const noexcept {
+    return m_value.size();
+}
+
+const IExpr& Sum::Get(size_t index) const noexcept {
+    return *m_value.at(index);
+}
+
+const std::vector<std::unique_ptr<IExpr>>& Sum::Value() const noexcept {
     return m_value;
 }
+
 
 bool Sum::IsConstant() const {
     return std::all_of(m_value.begin(), m_value.end(), 
@@ -75,18 +106,14 @@ bool Sum::IsEqualTo(const IExpr& other) const {
     return lhs == rhs;
 }
 
-size_t Sum::Hash() const {
-    constexpr size_t RANDOM_BASE = 18251384670654659732u;
+size_t Sum::HashImpl() const {
+    constexpr size_t RANDOM_BASE = 18251384670654659732u;   
 
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
-    
     size_t result = RANDOM_BASE;
     for (const auto& val : m_value) {
         hash::combine(result, val->Hash());
     }
-    return m_bufferedHash = result;
+    return result;
 }
 
 std::unique_ptr<IExpr> Sum::Copy() const {

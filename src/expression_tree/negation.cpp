@@ -7,6 +7,11 @@ Negation::Negation(std::unique_ptr<IExpr>&& val)
     : m_value{std::move(val)}
 {}
 
+void Negation::Set(std::unique_ptr<IExpr>&& val) {
+    m_value = std::move(val);
+    OnChange();
+}
+
 const IExpr& Negation::Value() const noexcept {
     return *m_value;
 }
@@ -15,12 +20,9 @@ bool Negation::IsConstant() const {
     return m_value->IsConstant();
 }
 
-size_t Negation::Hash() const {
+size_t Negation::HashImpl() const {
     constexpr size_t RANDOM_BASE = 18406927461344389294u;
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
-    return m_bufferedHash = hash::combine(RANDOM_BASE, m_value->Hash());
+    return hash::combine(RANDOM_BASE, m_value->Hash());
 }
 
 int Negation::Sign() const {
@@ -45,7 +47,5 @@ std::string Negation::ToString() const {
     }
     return res;
 }
-
-
 
 }

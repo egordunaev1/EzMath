@@ -21,22 +21,68 @@ void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
     m_value.emplace_back(std::move(subExpr));
 }
 
-const std::list<std::unique_ptr<IExpr>>& Product::Value() const noexcept {
+void Product::Set(size_t index, std::unique_ptr<IExpr>&& value) {
+    m_value[index] = std::move(value);
+
+}
+
+void Product::Erase(size_t index) {
+    m_value.erase(m_value.begin() + index);
+    OnChange();
+}
+
+void Product::AddMultiplier(std::unique_ptr<IExpr>&& value) {
+    Add(std::move(value));
+    OnChange();
+}
+
+void Product::Multiply(std::unique_ptr<Product>&& other) {
+    for (auto& val : other->m_value) {
+        Add(std::move(val));
+    }
+    OnChange();
+}
+
+std::unique_ptr<Product> Product::Coefficient() const noexcept {
+    std::vector<std::unique_ptr<IExpr>> res;
+    for (const auto& val : m_value) {
+        if (val->IsConstant()) {
+            res.emplace_back(val->Copy());
+        }
+    }
+    return math::multiply(std::move(res));
+}
+
+std::unique_ptr<Product> Product::Variable() const noexcept {
+    std::vector<std::unique_ptr<IExpr>> res;
+    for (const auto& val : m_value) {
+        if (!val->IsConstant()) {
+            res.emplace_back(val->Copy());
+        }
+    }
+    return math::multiply(std::move(res));
+}
+
+size_t Product::Size() const noexcept {
+    return m_value.size();
+}
+
+const IExpr& Product::Get(size_t index) const noexcept {
+    return *m_value.at(index);
+}
+
+const std::vector<std::unique_ptr<IExpr>>& Product::Value() const noexcept {
     return m_value;
 }
 
-size_t Product::Hash() const {
+size_t Product::HashImpl() const {
     constexpr size_t RANDOM_BASE = 8323215160037385666u;
-
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
     
     size_t result = RANDOM_BASE;
     for (const auto& val : m_value) {
         hash::combine(result, val->Hash());
     }
-    return m_bufferedHash = result;
+    return result;
 }
 
 bool Product::IsConstant() const {

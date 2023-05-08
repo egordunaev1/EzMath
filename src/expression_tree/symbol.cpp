@@ -7,14 +7,16 @@ Symbol::Symbol(const std::string_view val)
     : m_value{val} 
 {}
 
+void Symbol::SetName(const std::string_view s) {
+    m_value = s;
+    OnChange();
+}
+
 std::string_view Symbol::Name() const noexcept { return m_value; }
 
-size_t Symbol::Hash() const {
+size_t Symbol::HashImpl() const {
     constexpr size_t RANDOM_BASE = 17690554549982570371u;
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
-    return m_bufferedHash = hash::combine(RANDOM_BASE, std::hash<std::string_view>()(m_value));
+    return hash::combine(RANDOM_BASE, std::hash<std::string_view>()(m_value));
 }
 
 bool Symbol::IsEqualTo(const IExpr& other) const {

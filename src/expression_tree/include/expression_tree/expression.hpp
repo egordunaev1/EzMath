@@ -24,4 +24,24 @@ struct IExpr {
     bool Is() const noexcept { return static_cast<bool>(dynamic_cast<const T*>(this)); }
 };
 
+class BaseExpression : public IExpr {
+public:
+    size_t Hash() const final {
+        return m_bufferedHash
+             ? m_bufferedHash
+             : HashImpl();
+    }
+
+protected:
+    void OnChange() {
+        m_bufferedHash = 0;
+    }
+
+private:
+    virtual size_t HashImpl() const = 0;
+
+private:
+    mutable size_t m_bufferedHash = 0;
+};
+
 }

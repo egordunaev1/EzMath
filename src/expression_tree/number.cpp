@@ -16,12 +16,9 @@ Number::Number(uint64_t val)
     : Number{bigint{static_cast<int64_t>(val)}}
 {}
 
-size_t Number::Hash() const {
+size_t Number::HashImpl() const {
     constexpr size_t RANDOM_BASE = 17343862609448786151u;
-    if (m_bufferedHash) {
-        return m_bufferedHash;
-    }
-    return m_bufferedHash = hash::combine(RANDOM_BASE, m_value.Hash());
+    return hash::combine(RANDOM_BASE, m_value.Hash());
 }
 
 bool Number::IsEqualTo(const IExpr& other) const {
@@ -29,6 +26,11 @@ bool Number::IsEqualTo(const IExpr& other) const {
         return false;
     }
     return other.Is<Number>() && (m_value == other.As<Number>()->m_value);
+}
+
+void Number::SetValue(bigint val) {
+    m_value = std::move(val);
+    OnChange();
 }
 
 const Number::bigint& Number::Value() const noexcept { return m_value; }

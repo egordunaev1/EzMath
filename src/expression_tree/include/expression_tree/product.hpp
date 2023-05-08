@@ -1,18 +1,26 @@
 #pragma once
 
 #include <expression_tree/expression.hpp>
-#include <list>
 #include <vector>
 
 namespace ezmath::expression_tree {
 
-class Product : public IExpr {
+class Product : public BaseExpression {
 public:
     Product(std::vector<std::unique_ptr<IExpr>>&& values);
 
-    const std::list<std::unique_ptr<IExpr>>&  Value() const noexcept;
+    void Set(size_t index, std::unique_ptr<IExpr>&& value);
+    void Erase(size_t index);
+    void AddMultiplier(std::unique_ptr<IExpr>&& value);
+    void Multiply(std::unique_ptr<Product>&& other);
 
-    size_t Hash() const override;
+    size_t Size() const noexcept;
+    const IExpr& Get(size_t index) const noexcept;
+    std::unique_ptr<Product> Coefficient() const noexcept;
+    std::unique_ptr<Product> Variable() const noexcept;
+    const std::vector<std::unique_ptr<IExpr>>& Value() const noexcept;
+
+    size_t HashImpl() const override;
     bool IsConstant() const override;
     int Sign() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -26,8 +34,7 @@ private:
     std::string ToString(const std::vector<std::reference_wrapper<IExpr>>& expressions) const;
 
 private:
-    mutable size_t m_bufferedHash = 0;
-    std::list<std::unique_ptr<IExpr>> m_value;
+    std::vector<std::unique_ptr<IExpr>> m_value;
 };
 
 }
