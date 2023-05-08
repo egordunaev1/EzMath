@@ -13,4 +13,13 @@ private:
     std::string m_msg;
 };
 
+class ParserException : public std::exception {
+public:
+    ParserException(std::string_view msg);
+    const char* what() const noexcept override;
+
+private:
+    std::string m_msg;
+};
+
 }

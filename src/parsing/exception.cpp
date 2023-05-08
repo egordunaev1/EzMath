@@ -9,4 +9,10 @@ LexerException::LexerException(const std::string_view msg)
 
 const char* LexerException::what() const noexcept { return m_msg.c_str(); }
 
+ParserException::ParserException(const std::string_view msg)
+    : m_msg{fmt::format("Parser error: {}", msg)}
+{}
+
+const char* ParserException::what() const noexcept { return m_msg.c_str(); }
+
 } // namespace ezmath::parsing::exception
