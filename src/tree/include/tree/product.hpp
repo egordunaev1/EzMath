@@ -1,9 +1,9 @@
 #pragma once
 
-#include <expression_tree/expression.hpp>
+#include <tree/expression.hpp>
 #include <vector>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 class Product : public BaseExpression {
 public:

@@ -1,7 +1,7 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/hash_utils.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Symbol::Symbol(const std::string_view val) 
     : m_value{val} 

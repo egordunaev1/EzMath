@@ -1,9 +1,9 @@
 #pragma once
 
-#include <expression_tree/expression.hpp>
-#include <expression_tree/bigint.hpp>
+#include <tree/expression.hpp>
+#include <tree/bigint.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 class Number : public BaseExpression {
 public:

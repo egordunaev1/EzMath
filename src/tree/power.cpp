@@ -1,8 +1,8 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/hash_utils.hpp>
 #include <fmt/format.h>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Power::Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp)
     : m_base{std::move(base)}

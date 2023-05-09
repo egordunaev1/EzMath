@@ -1,9 +1,9 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/hash_utils.hpp>
 #include <ranges>
 #include <unordered_set>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Product::Product(std::vector<std::unique_ptr<IExpr>>&& values) {
     for (auto& val : values) {

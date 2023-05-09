@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace ezmath::expression_tree::exception {
+namespace ezmath::tree::exception {
 
 class CalcException : public std::exception {
 public:

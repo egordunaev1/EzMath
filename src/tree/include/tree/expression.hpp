@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 struct IExpr {
     virtual ~IExpr() = default;

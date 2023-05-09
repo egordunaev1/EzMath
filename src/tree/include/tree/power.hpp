@@ -1,9 +1,9 @@
 #pragma once
 
-#include <expression_tree/expression.hpp>
-#include <expression_tree/number.hpp>
+#include <tree/expression.hpp>
+#include <tree/number.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 class Power : public BaseExpression {
 public:

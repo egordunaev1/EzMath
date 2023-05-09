@@ -1,8 +1,8 @@
 #pragma once
 
-#include <expression_tree/expression.hpp>
+#include <tree/expression.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 class Symbol : public BaseExpression {
 public:

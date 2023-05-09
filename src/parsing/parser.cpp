@@ -12,7 +12,7 @@ Parser::Parser(const std::string_view text)
     : m_lexer{text}
 {}  
 
-std::unique_ptr<expression_tree::IExpr> Parser::BuildTree() {
+std::unique_ptr<tree::IExpr> Parser::BuildTree() {
     auto tree = ParseExpression();
     if (m_lexer.GetToken()) {
         throw exception::ParserException{"found extra characters at the end of the expression"};
@@ -20,7 +20,7 @@ std::unique_ptr<expression_tree::IExpr> Parser::BuildTree() {
     return tree;
 }
 
-std::unique_ptr<expression_tree::IExpr> Parser::ParseExpression() {
+std::unique_ptr<tree::IExpr> Parser::ParseExpression() {
     return ParseSum();
 }
 
@@ -37,8 +37,8 @@ int Parser::ReadSumOperator() {
     return 0;
 }
 
-std::unique_ptr<expression_tree::IExpr> Parser::ParseSum() {
-    std::vector<std::unique_ptr<expression_tree::IExpr>> values;
+std::unique_ptr<tree::IExpr> Parser::ParseSum() {
+    std::vector<std::unique_ptr<tree::IExpr>> values;
     int sign = ReadSumOperator();
 
     if (!sign) sign = 1; // First term may not have sign
@@ -73,8 +73,8 @@ int Parser::ReadProdOperator() {
         : 0;
 }
 
-std::unique_ptr<expression_tree::IExpr> Parser::ParseProduct() {
-    std::vector<std::unique_ptr<expression_tree::IExpr>> values;
+std::unique_ptr<tree::IExpr> Parser::ParseProduct() {
+    std::vector<std::unique_ptr<tree::IExpr>> values;
     while (const auto power = ReadProdOperator()) {
         auto next = ParsePower();
         if (power == -1) {
@@ -86,7 +86,7 @@ std::unique_ptr<expression_tree::IExpr> Parser::ParseProduct() {
 }
 
 
-std::unique_ptr<expression_tree::IExpr> Parser::ParsePower() {
+std::unique_ptr<tree::IExpr> Parser::ParsePower() {
     auto base = ParseObject();
     if (m_lexer.GetToken() == token::operation::pow) {
         m_lexer.NextToken();
@@ -95,7 +95,7 @@ std::unique_ptr<expression_tree::IExpr> Parser::ParsePower() {
     return base;
 }
 
-std::unique_ptr<expression_tree::IExpr> Parser::ParseObject() {
+std::unique_ptr<tree::IExpr> Parser::ParseObject() {
     if (!m_lexer.GetToken()) {
         throw exception::ParserException{"expected object, found end"};
     }
@@ -126,7 +126,7 @@ std::unique_ptr<expression_tree::IExpr> Parser::ParseObject() {
     throw exception::ParserException{"expected object"};
 }
 
-std::unique_ptr<expression_tree::IExpr> Parser::ReadArgument() {
+std::unique_ptr<tree::IExpr> Parser::ReadArgument() {
     const auto curChar = m_lexer.GetChar();
 
     if (!curChar) {
@@ -155,7 +155,7 @@ std::unique_ptr<expression_tree::IExpr> Parser::ReadArgument() {
     throw exception::ParserException{"expected argument"};
 }
 
-std::unique_ptr<expression_tree::IExpr> ParseTree(const std::string_view str) {
+std::unique_ptr<tree::IExpr> ParseTree(const std::string_view str) {
     return Parser{str}.BuildTree();
 }
 

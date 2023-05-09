@@ -1,11 +1,11 @@
 #pragma once
 
-#include <expression_tree/expression.hpp>
+#include <tree/expression.hpp>
 #include <numeric>
 #include <ranges>
 #include <vector>
 
-namespace ezmath::expression_tree::hash {
+namespace ezmath::tree::hash {
 
 constexpr size_t _combine(size_t lhs, size_t rhs) {
     lhs ^= rhs + 0x517cc1b727220a95 + (lhs << 6) + (lhs >> 2);

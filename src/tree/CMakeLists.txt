@@ -1,4 +1,4 @@
-project(expression_tree)
+project(tree)
 
 set(TREE_SRC 
     exception.cpp

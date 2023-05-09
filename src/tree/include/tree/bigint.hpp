@@ -4,7 +4,7 @@
 #include <optional>
 #include <boost/multiprecision/cpp_int.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 class BigInt {
 public:

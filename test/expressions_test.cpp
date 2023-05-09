@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include <expression_tree/factory.hpp>
+#include <tree/factory.hpp>
 #include <ranges>
 
 namespace ezmath::test {
 
-using namespace expression_tree;
+using namespace tree;
 
 class ExpressionsTest : public ::testing::Test {
 protected:

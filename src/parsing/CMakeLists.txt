@@ -8,7 +8,7 @@ set(PARSING_SRC
 add_library(${PROJECT_NAME} ${PARSING_SRC})
 target_include_directories(${PROJECT_NAME} 
     PUBLIC include
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/expression_tree/include)
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/tree/include)
 target_link_libraries(${PROJECT_NAME} 
     PRIVATE fmt::fmt
-    PUBLIC expression_tree)
+    PUBLIC tree)

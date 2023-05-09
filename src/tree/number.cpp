@@ -1,8 +1,8 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/exception.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/exception.hpp>
+#include <tree/hash_utils.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Number::Number(bigint val)
     : m_value{std::move(val)}

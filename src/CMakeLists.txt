@@ -1,3 +1,3 @@
 add_subdirectory(ezmath)
 add_subdirectory(parsing)
-add_subdirectory(expression_tree)
+add_subdirectory(tree)

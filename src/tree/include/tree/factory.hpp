@@ -1,17 +1,17 @@
 #pragma once
 
-#include <expression_tree/exception.hpp>
-#include <expression_tree/number.hpp>
-#include <expression_tree/power.hpp>
-#include <expression_tree/product.hpp>
-#include <expression_tree/sum.hpp>
-#include <expression_tree/symbol.hpp>
-#include <expression_tree/negation.hpp>
+#include <tree/exception.hpp>
+#include <tree/number.hpp>
+#include <tree/power.hpp>
+#include <tree/product.hpp>
+#include <tree/sum.hpp>
+#include <tree/symbol.hpp>
+#include <tree/negation.hpp>
 
 #include <fmt/format.h>
 #include <concepts>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 template<class T>
 concept Expr = std::is_convertible_v<T, std::unique_ptr<IExpr>>;

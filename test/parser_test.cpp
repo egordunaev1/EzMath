@@ -5,7 +5,7 @@
 namespace ezmath::test {
 
 using namespace parsing;
-using namespace expression_tree;
+using namespace tree;
 
 class ParserTest : public ::testing::Test {
 protected:

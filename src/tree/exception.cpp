@@ -1,7 +1,7 @@
-#include <expression_tree/exception.hpp>
+#include <tree/exception.hpp>
 #include <fmt/format.h>
 
-namespace ezmath::expression_tree::exception {
+namespace ezmath::tree::exception {
     
 CalcException::CalcException(const std::string_view msg)
     : m_msg{fmt::format("Calculation error: {}", msg)}

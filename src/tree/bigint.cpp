@@ -1,8 +1,8 @@
-#include <expression_tree/bigint.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/bigint.hpp>
+#include <tree/hash_utils.hpp>
 #include <fmt/format.h>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 BigInt::BigInt(int64_t val)
     : m_dividend{val}

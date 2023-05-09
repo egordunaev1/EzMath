@@ -1,7 +1,7 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/hash_utils.hpp>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Negation::Negation(std::unique_ptr<IExpr>&& val)
     : m_value{std::move(val)}

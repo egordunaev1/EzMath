@@ -17,7 +17,7 @@ target_link_libraries(parser_test
 add_executable(expressions_test expressions_test.cpp)
 target_link_libraries(expressions_test
     GTest::gtest_main
-    expression_tree
+    tree
     fmt::fmt)
     
 gtest_discover_tests(lexer_test parser_test expressions_test)

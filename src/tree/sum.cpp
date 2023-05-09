@@ -1,9 +1,9 @@
-#include <expression_tree/factory.hpp>
-#include <expression_tree/hash_utils.hpp>
+#include <tree/factory.hpp>
+#include <tree/hash_utils.hpp>
 #include <unordered_set>
 #include <ranges>
 
-namespace ezmath::expression_tree {
+namespace ezmath::tree {
 
 Sum::Sum(std::vector<std::unique_ptr<IExpr>>&& values) {
     for (auto& val : values) {
