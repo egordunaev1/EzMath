@@ -6,7 +6,6 @@
 #include <tree/product.hpp>
 #include <tree/sum.hpp>
 #include <tree/symbol.hpp>
-#include <tree/negation.hpp>
 
 #include <fmt/format.h>
 #include <concepts>
@@ -58,31 +57,15 @@ struct math {
     }
 
     static std::unique_ptr<IExpr> number(const int64_t val) {
-        return number(Number::bigint{val});
+        return std::make_unique<Number>(val);
     }
 
     static std::unique_ptr<IExpr> number(Number::bigint val) {
-        return (val.Sign() == -1) ? negative_number(val) : positive_number(val);
-    }
-
-    template<class T>
-    static std::unique_ptr<Number> positive_number(T&& val) {
-        if (val < 0) {
-            throw exception::CalcException{"positive_number called with negative argument"};
-        }
-        return std::make_unique<Number>(Number::bigint{std::forward<T>(val)});
-    }
-
-    template<class T>
-    static std::unique_ptr<IExpr> negative_number(T&& val) {
-        if (val > 0) {
-            throw exception::CalcException{"negative_number called with positive argument"};
-        }
-        return negate(positive_number(-Number::bigint{val}));
+        return std::make_unique<Number>(std::move(val));
     }
 
     static std::unique_ptr<IExpr> negate(std::unique_ptr<IExpr>&& val) {
-        return std::make_unique<Negation>(std::move(val));
+        return multiply(number(-1), std::move(val));
     }
 };
 

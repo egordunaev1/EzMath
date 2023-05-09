@@ -6,19 +6,19 @@ namespace ezmath::tree {
 
 Number::Number(bigint val)
     : m_value{std::move(val)}
-{
-    if (val.Sign() == -1) {
-        throw exception::CalcException{"constructing Number class from negative number"};
-    }
-}
+{}
 
-Number::Number(uint64_t val) 
-    : Number{bigint{static_cast<int64_t>(val)}}
+Number::Number(int64_t val)
+    : Number{bigint{val}}
 {}
 
 size_t Number::HashImpl() const {
     constexpr size_t RANDOM_BASE = 17343862609448786151u;
     return hash::combine(RANDOM_BASE, m_value.Hash());
+}
+
+int Number::Sign() const {
+    return m_value.Sign();
 }
 
 bool Number::IsEqualTo(const IExpr& other) const {
