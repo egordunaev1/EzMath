@@ -2,7 +2,6 @@
 
 #include <tree/expression.hpp>
 #include <numeric>
-#include <ranges>
 #include <vector>
 
 namespace ezmath::tree::hash {
@@ -35,10 +34,12 @@ struct Hasher {
 };
 
 inline size_t asymmetric_hash(const size_t base, const std::vector<std::unique_ptr<IExpr>>& v) {
-    auto hash = [](const auto& val) { return val->Hash(); };
-    auto range = std::ranges::views::transform(v, hash);
-    std::vector<size_t> hashes{range.begin(), range.end()};
-    std::ranges::sort(hashes);
+    std::vector<size_t> hashes;
+    hashes.reserve(v.size());
+    for (const auto& val : v) {
+        hashes.emplace_back(val->Hash());
+    }
+    std::sort(hashes.begin(), hashes.end());
     return std::accumulate(hashes.begin(), hashes.end(), base, _combine);
 }
 
