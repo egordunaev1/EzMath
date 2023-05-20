@@ -20,11 +20,15 @@ struct math {
 
     template<Expr... Args>
     static std::unique_ptr<Product> multiply(Args&&... args) {
-        std::unique_ptr<IExpr> init[] = {std::move(args)...};
-        return std::make_unique<Product>(std::vector<std::unique_ptr<IExpr>>{
-            std::make_move_iterator(std::begin(init)), 
-            std::make_move_iterator(std::end(init))
-        });
+        if constexpr(sizeof...(args) == 0) {
+            return std::make_unique<Product>(std::vector<std::unique_ptr<IExpr>>{});
+        } else {
+            std::array<std::unique_ptr<IExpr>, sizeof...(args)> init = {std::move(args)...};
+            return std::make_unique<Product>(std::vector<std::unique_ptr<IExpr>>{
+                std::make_move_iterator(std::begin(init)), 
+                std::make_move_iterator(std::end(init))
+            });
+        }
     }
 
     static std::unique_ptr<Product> multiply(std::vector<std::unique_ptr<IExpr>>&& values) {
@@ -33,11 +37,15 @@ struct math {
 
     template<Expr... Args>
     static std::unique_ptr<Sum> add(Args&&... args) {
-        std::unique_ptr<IExpr> init[] = {std::move(args)...};
-        return std::make_unique<Sum>(std::vector<std::unique_ptr<IExpr>>{
-            std::make_move_iterator(std::begin(init)), 
-            std::make_move_iterator(std::end(init))
-        });
+        if constexpr(sizeof...(args) == 0) {
+            return std::make_unique<Sum>(std::vector<std::unique_ptr<IExpr>>{});
+        } else {
+            std::array<std::unique_ptr<IExpr>, sizeof...(args)> init = {std::move(args)...};
+            return std::make_unique<Sum>(std::vector<std::unique_ptr<IExpr>>{
+                std::make_move_iterator(std::begin(init)), 
+                std::make_move_iterator(std::end(init))
+            });
+        }
     }
 
     static std::unique_ptr<Sum> add(std::vector<std::unique_ptr<IExpr>>&& values) {
@@ -56,16 +64,26 @@ struct math {
         return std::make_unique<Number>(str);
     }
 
-    static std::unique_ptr<IExpr> number(const int64_t val) {
+    static std::unique_ptr<Number> number(const int64_t val) {
         return std::make_unique<Number>(val);
     }
 
-    static std::unique_ptr<IExpr> number(Number::bigint val) {
+    static std::unique_ptr<Number> number(Number::bigint val) {
         return std::make_unique<Number>(std::move(val));
     }
 
     static std::unique_ptr<IExpr> negate(std::unique_ptr<IExpr>&& val) {
         return multiply(number(-1), std::move(val));
+    }
+
+    static std::unique_ptr<IExpr> inverse(std::unique_ptr<IExpr>&& val) {
+        return exp(std::move(val), number(-1));
+    }
+
+    static void simplify(std::unique_ptr<IExpr>& val) {
+        if (auto res = val->Simplify(); res != nullptr) {
+            val = std::move(res);
+        }
     }
 };
 

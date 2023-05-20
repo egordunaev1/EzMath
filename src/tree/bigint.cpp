@@ -1,21 +1,22 @@
+#include <tree/exception.hpp>
 #include <tree/bigint.hpp>
 #include <tree/hash_utils.hpp>
 #include <fmt/format.h>
 
 namespace ezmath::tree {
 
-BigInt::BigInt(int64_t val)
-    : m_dividend{val}
-    , m_divisor{1}
-{
-    Normalize();
-}
+BigNum::BigNum()
+    : BigNum{0} 
+{}
 
-BigInt::BigInt(const std::string_view str) {
+BigNum::BigNum(int64_t val)
+    : m_value{val}
+{}
+
+BigNum::BigNum(const std::string_view str) {
     const auto point = str.find('.');
     if (point == std::string::npos) {
-        m_dividend = impl{str};
-        m_divisor = 1;
+        m_value = Rational{str};
         return;
     }
 
@@ -24,115 +25,84 @@ BigInt::BigInt(const std::string_view str) {
     std::string divisor(1, '1');
     divisor.resize(1 + zeros, '0');
 
-    m_dividend = impl{dividend};
-    m_divisor = impl{divisor};
-    Normalize();
+    m_value = Rational{dividend, divisor};
 }
 
-BigInt::BigInt(impl val) 
-    : m_dividend{std::move(val)}
-    , m_divisor{1}
-{
-    Normalize();
+BigNum::BigNum(Rational val) 
+    : m_value{std::move(val)}
+{}
+
+size_t BigNum::Hash() const {
+    return boost::multiprecision::hash_value(m_value);
 }
 
-BigInt::BigInt(impl dividend, impl divisor) 
-    : m_dividend{std::move(dividend)}
-    , m_divisor{std::move(divisor)}
-{
-    Normalize();
+bool BigNum::IsInteger() const {
+    return boost::multiprecision::denominator(m_value) == 1;
 }
 
-size_t BigInt::Hash() const {
-    return hash::combine(
-        boost::multiprecision::hash_value(m_dividend),
-        boost::multiprecision::hash_value(m_divisor)
-    );
+int BigNum::Sign() const {
+    return m_value.sign();
 }
 
-bool BigInt::IsInteger() const {
-    return m_divisor == 1;
-}
+std::string BigNum::ToString() const {
+    auto numerator = boost::multiprecision::numerator(m_value);
+    auto denominator = boost::multiprecision::denominator(m_value);
 
-int BigInt::Sign() const {
-    return m_dividend.sign();
-}
-
-std::string BigInt::ToString() const {
-    if (m_divisor == 1) {
-        return m_dividend.convert_to<std::string>();
+    if (denominator == 1) {
+        return numerator.convert_to<std::string>();
     }
-    return fmt::format("\\frac{{{}}}{{{}}}", m_dividend.convert_to<std::string>(), m_divisor.convert_to<std::string>());
+    return fmt::format("\\frac{{{}}}{{{}}}", numerator.convert_to<std::string>(), denominator.convert_to<std::string>());
 }
 
-void BigInt::Normalize() {
-    if (m_divisor.sign() == -1) {
-        m_divisor *= -1;
-        m_dividend *= -1;
-    }
-    if (impl gcd = boost::multiprecision::gcd(m_dividend, m_divisor); gcd != 1) {
-        m_dividend /= gcd;
-        m_divisor /= gcd;
-    }
+BigNum BigNum::operator-() const {
+    return BigNum{-m_value};
 }
 
-BigInt BigInt::operator-() const {
-    return {m_dividend * -1, m_divisor};
+BigNum BigNum::operator*(const BigNum& other) const {
+    return BigNum{*this} *= other;
 }
 
-BigInt BigInt::operator*(const BigInt& other) const {
-    return BigInt{*this} *= other;
+BigNum BigNum::operator/(const BigNum& other) const {
+    return BigNum{*this} /= other;
 }
 
-BigInt BigInt::operator/(const BigInt& other) const {
-    return BigInt{*this} /= other;
+BigNum BigNum::operator+(const BigNum& other) const {
+    return BigNum{*this} += other;
 }
 
-BigInt BigInt::operator+(const BigInt& other) const {
-    return BigInt{*this} += other;
+BigNum BigNum::operator-(const BigNum& other) const {
+    return BigNum{*this} -= other;
 }
 
-BigInt BigInt::operator-(const BigInt& other) const {
-    return BigInt{*this} -= other;
-}
-
-BigInt& BigInt::operator*=(const BigInt& other) {
-    m_dividend *= other.m_dividend;
-    Normalize();
+BigNum& BigNum::operator*=(const BigNum& other) {
+    m_value *= other.m_value;
     return *this;
 }
 
-BigInt& BigInt::operator/=(const BigInt& other) {
-    m_dividend /= other.m_dividend;
-    Normalize();
+BigNum& BigNum::operator/=(const BigNum& other) {
+    m_value /= other.m_value;
     return *this;
 }
 
-BigInt& BigInt::operator+=(const BigInt& other) {
-    impl lcm = boost::multiprecision::lcm(m_divisor, other.m_divisor);
-    m_dividend = m_dividend * (m_divisor / lcm) + other.m_dividend * (other.m_divisor / lcm);
-    m_divisor = std::move(lcm);
-    Normalize();
+BigNum& BigNum::operator+=(const BigNum& other) {
+    m_value += other.m_value;
     return *this;
 }
 
-BigInt& BigInt::operator-=(const BigInt& other) {
-    impl lcm = boost::multiprecision::lcm(m_divisor, other.m_divisor);
-    m_dividend = m_dividend * (m_divisor / lcm) - other.m_dividend * (other.m_divisor / lcm);
-    m_divisor = std::move(lcm);
-    Normalize();
+BigNum& BigNum::operator-=(const BigNum& other) {
+    m_value -= other.m_value;
     return *this;
 }
 
-std::optional<BigInt> pow(const BigInt& base, const BigInt& exp) {
-    if ((exp.m_divisor == 1) && (exp.m_dividend <= std::numeric_limits<int>::max())) {
-        const auto power = exp.m_dividend.convert_to<int>();
-        return BigInt{
-            boost::multiprecision::pow(base.m_dividend, power),
-            boost::multiprecision::pow(base.m_divisor, power),
-        };
-    }
-    return std::nullopt;
+const BigNum::Rational& BigNum::GetImpl() const noexcept {
+    return m_value;
+}
+
+std::pair<BigNum::Integer, BigNum::Integer> BigNum::Decompose() const {
+    return {
+        boost::multiprecision::numerator(m_value),
+        boost::multiprecision::denominator(m_value)
+    };
 }
 
 }

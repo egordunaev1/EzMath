@@ -7,12 +7,11 @@ Symbol::Symbol(const std::string_view val)
     : m_value{val} 
 {}
 
-void Symbol::SetName(const std::string_view s) {
-    m_value = s;
-    OnChange();
-}
-
 std::string_view Symbol::Name() const noexcept { return m_value; }
+
+std::unique_ptr<IExpr> Symbol::SimplifyImpl() {
+    return nullptr;
+}
 
 size_t Symbol::HashImpl() const {
     constexpr size_t RANDOM_BASE = 17690554549982570371u;

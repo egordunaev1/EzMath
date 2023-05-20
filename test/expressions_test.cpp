@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <tree/factory.hpp>
+#include <parsing/parser.hpp>
 #include <ranges>
 
 namespace ezmath::test {
@@ -33,6 +34,30 @@ protected:
     template<class... Args>
     TTree sum(Args... args) { return math::add(std::forward<Args>(args)...); }
 };
+
+TEST_F(ExpressionsTest, TestSumFactorOut) {
+    auto TEST = "a^{10}+a";
+    auto ANSW = "a(1+a^{9})";
+    EXPECT_NO_THROW(res = parsing::ParseTree(TEST));
+    EXPECT_NO_THROW(math::simplify(res));
+    EXPECT_EQ(res->ToString(), ANSW);
+}
+
+TEST_F(ExpressionsTest, TestSumFactorOut2) {
+    auto TEST = "2^4a^{10}+2a^3";
+    auto ANSW = "2(1+8a^{7})a^{3}";
+    EXPECT_NO_THROW(res = parsing::ParseTree(TEST));
+    EXPECT_NO_THROW(math::simplify(res));
+    EXPECT_EQ(res->ToString(), ANSW);
+}
+
+TEST_F(ExpressionsTest, TestSumNumbersSymbol) {
+    auto TEST = "1+2+a+4+5";
+    auto ANSW = "12+a";
+    EXPECT_NO_THROW(res = parsing::ParseTree(TEST));
+    EXPECT_NO_THROW(math::simplify(res));
+    EXPECT_EQ(res->ToString(), ANSW);
+}
 
 TEST_F(ExpressionsTest, TestEqProd) {
     const auto TEST1 = prod(num(12), pow(var("x"), var("y")));
@@ -71,6 +96,13 @@ TEST_F(ExpressionsTest, TestEqSumNoOrder) {
     do {
         EXPECT_TRUE(sum(values)->IsEqualTo(*TEST));
     } while (std::next_permutation(std::begin(values), std::end(values)));
+}
+
+TEST_F(ExpressionsTest, TestSumNumbers) {
+    std::unique_ptr<IExpr> TEST;
+    EXPECT_NO_THROW(TEST = parsing::ParseTree("1+2+3+4+5")->Simplify());
+    auto ANSW = "15";
+    EXPECT_EQ(TEST->ToString(), ANSW);
 }
 
 }

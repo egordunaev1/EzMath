@@ -1,26 +1,50 @@
 #pragma once
 
-#include <tree/expression.hpp>
+#include <tree/hash_utils.hpp>
+#include <tree/number.hpp>
+#include <unordered_set>
 #include <vector>
 
 namespace ezmath::tree {
 
+struct Multiplier {
+    Multiplier(std::unique_ptr<IExpr>&& expression);
+
+    const IExpr* Key;
+    std::unique_ptr<IExpr> Expression;
+
+    inline friend bool operator==(const Multiplier& lhs, const Multiplier& rhs) { 
+        return lhs.Key->IsEqualTo(*rhs.Key); 
+    }
+};
+
+struct MultiplierHash {
+    inline size_t operator()(const Multiplier& mul) const { return mul.Key->Hash(); }
+};
+
+std::pair<std::unique_ptr<IExpr>, std::unique_ptr<IExpr>> DecomposePower(Multiplier& mul);
+
+const IExpr& GetBase(const Multiplier& mul);
+const IExpr& GetExp(const Multiplier& mul);
+
+
 class Product : public BaseExpression {
 public:
+    using ValueType = std::unordered_multiset<Multiplier, MultiplierHash>;
+    using ConstantPart = ValueType;
+    using VariablePart = ValueType;
+    using Coefficient = Number::bigint;
+
     Product(std::vector<std::unique_ptr<IExpr>>&& values);
 
-    void Set(size_t index, std::unique_ptr<IExpr>&& value);
-    void Erase(size_t index);
-    void AddMultiplier(std::unique_ptr<IExpr>&& value);
-    void Multiply(std::unique_ptr<Product>&& other);
+    const Coefficient& GetCoefficient() const;
+    const ConstantPart& GetConstants() const;
+    const VariablePart& GetVariables() const;
 
-    size_t Size() const noexcept;
-    const IExpr& Get(size_t index) const noexcept;
-    std::unique_ptr<Product> Coefficient() const noexcept;
-    std::unique_ptr<Product> Variable() const noexcept;
-    const std::vector<std::unique_ptr<IExpr>>& Value() const noexcept;
+    Coefficient&& DetachCoefficient();
+    ConstantPart&& DetachConstants();
+    VariablePart&& DetachVariables();
 
-    size_t HashImpl() const override;
     bool IsConstant() const override;
     int Sign() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -28,13 +52,22 @@ public:
     std::string ToString() const override;
 
 private:
+    std::unique_ptr<IExpr> simplify_MultiplyLikeTerms();
+    std::unique_ptr<IExpr> simplify_SimplifyChildren();
+    std::unique_ptr<IExpr> simplify_DegenerateCases();
+
+    std::unique_ptr<IExpr> SimplifyImpl() override;
+    size_t HashImpl() const override;
+
     void Add(std::unique_ptr<IExpr>&& subExpr);
 
     void ToString(std::string& res, const IExpr& add) const;
-    std::string ToString(const std::vector<std::reference_wrapper<IExpr>>& expressions) const;
+    std::string ToString(const ValueType& expressions) const;
 
 private:
-    std::vector<std::unique_ptr<IExpr>> m_value;
+    Coefficient m_coefficient;
+    ConstantPart m_constants;
+    VariablePart m_variables;
 };
 
 }

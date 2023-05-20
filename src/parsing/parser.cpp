@@ -78,7 +78,7 @@ std::unique_ptr<tree::IExpr> Parser::ParseProduct() {
     while (const auto power = ReadProdOperator()) {
         auto next = ParsePower();
         if (power == -1) {
-            next = math::exp(std::move(next), math::number(-1));
+            next = math::inverse(std::move(next));
         }
         values.emplace_back(std::move(next));
     }

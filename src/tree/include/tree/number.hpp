@@ -7,16 +7,14 @@ namespace ezmath::tree {
 
 class Number : public BaseExpression {
 public:
-    using bigint = BigInt;
+    using bigint = BigNum;
 
     Number(bigint val);
     Number(int64_t val);
 
-    void SetValue(bigint val);
-
     const bigint& Value() const noexcept;
+    bigint&& DetachValue() noexcept;
 
-    size_t HashImpl() const override;
     constexpr bool IsConstant() const override { return true; }
     int Sign() const override;
     bool IsEqualTo(const IExpr& other) const override;
@@ -24,6 +22,8 @@ public:
     std::string ToString() const override;
     
 private:
+    std::unique_ptr<IExpr> SimplifyImpl() override;
+    size_t HashImpl() const override;
     bigint m_value;
 };
 

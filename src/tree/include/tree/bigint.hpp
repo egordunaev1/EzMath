@@ -6,13 +6,18 @@
 
 namespace ezmath::tree {
 
-class BigInt {
+class BigNum {
 public:
-    using impl = boost::multiprecision::cpp_int;
+    using Rational = boost::multiprecision::cpp_rational;
+    using Integer = boost::multiprecision::cpp_int;
 
-    BigInt(std::string_view str);
-    BigInt(impl val);
-    BigInt(int64_t val);
+    BigNum();
+    BigNum(std::string_view str);
+    BigNum(Rational val);
+    BigNum(int64_t val);
+
+    std::pair<Integer, Integer> Decompose() const;
+    const Rational& GetImpl() const noexcept;
 
     size_t Hash() const;
 
@@ -20,44 +25,28 @@ public:
     int Sign() const;
     std::string ToString() const;
 
-    BigInt operator-() const;
+    BigNum operator-() const;
 
-    BigInt operator*(const BigInt& other) const;
-    BigInt operator/(const BigInt& other) const;
-    BigInt operator+(const BigInt& other) const;
-    BigInt operator-(const BigInt& other) const;
+    BigNum operator*(const BigNum& other) const;
+    BigNum operator/(const BigNum& other) const;
+    BigNum operator+(const BigNum& other) const;
+    BigNum operator-(const BigNum& other) const;
 
-    BigInt& operator*=(const BigInt& other);
-    BigInt& operator/=(const BigInt& other);
-    BigInt& operator+=(const BigInt& other);
-    BigInt& operator-=(const BigInt& other);
+    BigNum& operator*=(const BigNum& other);
+    BigNum& operator/=(const BigNum& other);
+    BigNum& operator+=(const BigNum& other);
+    BigNum& operator-=(const BigNum& other);
 
-    inline auto operator<=>(const BigInt& other) const {
-        auto lcm = boost::multiprecision::lcm(m_divisor, other.m_divisor);
-        auto lval = m_dividend * (m_divisor / lcm);
-        auto rval = other.m_dividend * (other.m_divisor / lcm);
-        auto otmp = other.ToString();
-        auto tmp0 = ToString();
-        auto tmp1 = lval.convert_to<std::string>();
-        auto tmp2 = rval.convert_to<std::string>();
-        return std::tie(lval) <=> std::tie(rval);
+    inline auto operator<=>(const BigNum& other) const {
+        return std::tie(m_value) <=> std::tie(other.m_value);
     }
 
-    inline bool operator==(const BigInt& other) const {
-        return (*this <=> other) == std::weak_ordering::equivalent;
+    inline bool operator==(const BigNum& other) const {
+        return m_value == other.m_value;
     }
 
-    friend std::optional<BigInt> pow(const BigInt& base, const BigInt& exp);
-    
 private:
-    BigInt(impl dividend, impl divisor);
-    void Normalize();
-
-private:
-    impl m_dividend;
-    impl m_divisor;
+    Rational m_value;
 };
-
-std::optional<BigInt> pow(BigInt base, BigInt exp);
 
 }
