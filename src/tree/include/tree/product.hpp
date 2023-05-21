@@ -61,7 +61,7 @@ private:
 
     void Add(std::unique_ptr<IExpr>&& subExpr);
 
-    void ToString(std::string& res, const IExpr& add) const;
+    void ToString(std::string& res, const IExpr& add, bool isSingle) const;
     std::string ToString(const ValueType& expressions) const;
 
 private:

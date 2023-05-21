@@ -66,11 +66,10 @@ int Parser::ReadProdOperator() {
         return -1;
     }
 
-    return token.Type == Token::EType::Symbol 
-        || token.Type == Token::EType::Number 
-        || token == token::bracket::round::opening
-        ? 1 
-        : 0;
+    return token.Type == Token::EType::Operator
+        || token == token::bracket::right
+        || token::bracket::IsClosing(token)
+        ? 0 : 1;
 }
 
 std::unique_ptr<tree::IExpr> Parser::ParseProduct() {
@@ -95,23 +94,82 @@ std::unique_ptr<tree::IExpr> Parser::ParsePower() {
     return base;
 }
 
+
+std::optional<Token> Parser::ReadOpeningBracket() {
+    bool assert = false;
+    if (m_lexer.GetToken() == token::bracket::left) {
+        m_lexer.NextToken();
+        assert = true;
+    }
+
+    auto token = m_lexer.GetToken();
+    if (!token) {
+        if (assert) {
+            throw exception::ParserException{"expected opening bracket after \\left"};
+        }
+        return std::nullopt;
+    }
+
+    if (token::bracket::IsOpening(*token)) {
+        m_lexer.NextToken();
+        return token;
+    }
+
+    if (assert) {
+        throw exception::ParserException{"expected opening bracket after \\left"};
+    }
+
+    return std::nullopt;
+}
+
+std::optional<Token> Parser::ReadClosingBracket() {
+    bool assert = false;
+    if (m_lexer.GetToken() == token::bracket::right) {
+        m_lexer.NextToken();
+        assert = true;
+    }
+
+    auto token = m_lexer.GetToken();
+    if (!token) {
+        if (assert) {
+            throw exception::ParserException{"expected closing bracket after \\right"};
+        }
+        return std::nullopt;
+    }
+
+    if (token::bracket::IsClosing(*token)) {
+        m_lexer.NextToken();
+        return token;
+    }
+
+    if (assert) {
+        throw exception::ParserException{"expected opening bracket after \\right"};
+    }
+
+    return std::nullopt;
+}
+
 std::unique_ptr<tree::IExpr> Parser::ParseObject() {
+    auto openingBracket = ReadOpeningBracket();
+    
+    if (openingBracket == token::bracket::round::opening) {
+        auto inner = ParseExpression();
+
+        if (token::bracket::round::closing != ReadClosingBracket()) {
+            throw exception::ParserException{fmt::format("expected ')' to match '('")};
+        }
+
+        return inner;
+    }
+    
+    if (openingBracket) {
+        throw exception::ParserException{"unexpected opening bracket"};
+    }
     if (!m_lexer.GetToken()) {
         throw exception::ParserException{"expected object, found end"};
     }
+    auto token = *m_lexer.GetToken();
 
-    const auto token = *m_lexer.GetToken();
-    
-    if (token == token::bracket::round::opening) {
-        m_lexer.NextToken();
-        
-        auto inner = ParseExpression();
-        if (m_lexer.GetToken() == token::bracket::round::closing) {
-            m_lexer.NextToken();
-            return inner;
-        }
-        throw exception::ParserException{fmt::format("expected ')' to match '('", token.Value)};
-    }
     if (token.Type == Token::EType::Number) {
         m_lexer.NextToken();
         return math::number(token.Value);
@@ -121,9 +179,16 @@ std::unique_ptr<tree::IExpr> Parser::ParseObject() {
         return math::symbol(token.Value);
     }
     if (token.Type == Token::EType::Command) {
-        throw exception::ParserException{"command-object is not implemented yet"};
+        return ParseCommand();
     }
     throw exception::ParserException{"expected object"};
+}
+
+std::unique_ptr<tree::IExpr> Parser::ParseCommand() {
+    if (auto it = s_commandParsers.find(std::string{m_lexer.GetToken()->Value}); it != s_commandParsers.end()) {
+        return it->second(this);
+    }
+    throw exception::ParserException{fmt::format("command {} is not supported currently", m_lexer.GetToken()->Value)};
 }
 
 std::unique_ptr<tree::IExpr> Parser::ReadArgument() {
@@ -152,11 +217,22 @@ std::unique_ptr<tree::IExpr> Parser::ReadArgument() {
         }
         throw exception::ParserException{"'}' not found"};
     }
+
+    if (m_lexer.GetToken() && m_lexer.GetToken()->Type == Token::EType::Command) {
+        return ParseCommand();
+    }
     throw exception::ParserException{"expected argument"};
 }
 
 std::unique_ptr<tree::IExpr> ParseTree(const std::string_view str) {
     return Parser{str}.BuildTree();
+}
+
+std::unique_ptr<tree::IExpr> Parser::ParseFrac() {
+    m_lexer.NextToken(); // Skip \\frac
+    auto arg1 = ReadArgument();
+    auto arg2 = ReadArgument();
+    return math::multiply(std::move(arg1), math::inverse(std::move(arg2)));
 }
 
 } // namespace ezmath::parsing

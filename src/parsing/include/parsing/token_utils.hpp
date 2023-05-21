@@ -5,6 +5,9 @@
 namespace ezmath::parsing {
     namespace token {
         namespace bracket {
+            static constexpr auto left = Token{Token::EType::Command, "\\left"};
+            static constexpr auto right = Token{Token::EType::Command, "\\right"};
+
             namespace round {
                 static constexpr auto opening = Token{Token::EType::Bracket, "("};
                 static constexpr auto closing = Token{Token::EType::Bracket, ")"};

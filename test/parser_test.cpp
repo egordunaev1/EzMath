@@ -93,6 +93,22 @@ TEST_F(ParserTest, TestPowerOfPower) {
     EXPECT_EQ(res->ToString(), ANSW);
 }
 
+TEST_F(ParserTest, TestFrac) {
+    constexpr auto TEST = "\\frac{4}{2}";
+    constexpr auto ANSW = "2";
+    ASSERT_NO_THROW(res = ParseTree(TEST));
+    ASSERT_NO_THROW(math::simplify(res));
+    EXPECT_EQ(res->ToString(), ANSW);
+}
+
+TEST_F(ParserTest, TestLeftRight) {
+    constexpr auto TEST = "\\left(a+b\\right)^2";
+    constexpr auto ANSW = "(b+a)^{2}";
+    ASSERT_NO_THROW(res = ParseTree(TEST));
+    ASSERT_NO_THROW(math::simplify(res));
+    EXPECT_EQ(res->ToString(), ANSW);
+}
+
 TEST_F(ParserTest, TestExpression1) {
     constexpr auto TEST = "a^3+3a^2b+3ab^2+b^3";
     constexpr auto ANSW = "b^{3}+a^{3}+3b^{2}a+3ba^{2}";

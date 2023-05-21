@@ -1,4 +1,4 @@
-#include <tree/factory.hpp>
+#include <tree/math.hpp>
 #include <tree/hash_utils.hpp>
 #include <fmt/format.h>
 
@@ -16,7 +16,7 @@ Power::Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp)
 
 const IExpr& Power::GetBase() const noexcept { return *m_base; }
 
-const IExpr& Power::Exp() const noexcept { return *m_exp; }
+const IExpr& Power::GetExp() const noexcept { return *m_exp; }
 
 std::unique_ptr<IExpr>&& Power::DetachBase() noexcept { return std::move(m_base); }
 
@@ -30,22 +30,25 @@ std::unique_ptr<IExpr> Power::simplify_ProductBase() {
     auto product = m_base->As<Product>();
     std::vector<std::unique_ptr<IExpr>> multipliers;
 
-    auto&& power = math::exp(math::number(std::move(product->DetachCoefficient())), m_exp->Copy());
+    auto power = math::exp(math::number(std::move(product->DetachCoefficient())), m_exp->Copy());
     multipliers.emplace_back(std::move(power));
 
-    auto&& detachedConstants = product->DetachConstants();
+    auto detachedConstants = product->DetachConstants();
     while (!detachedConstants.empty()) {
-        auto&& base = std::move(detachedConstants.extract(detachedConstants.begin()).value().Expression);
+        auto base = std::move(detachedConstants.extract(detachedConstants.begin()).value().Expression);
         multipliers.emplace_back(math::exp(std::move(base), m_exp->Copy()));
     }
 
-    auto&& detachedVars = product->DetachVariables();
+    auto detachedVars = product->DetachVariables();
     while (!detachedVars.empty()) {
-        auto&& base = std::move(detachedVars.extract(detachedVars.begin()).value().Expression);
+        auto base = std::move(detachedVars.extract(detachedVars.begin()).value().Expression);
         multipliers.emplace_back(math::exp(std::move(base), m_exp->Copy()));
     }
 
-    return math::multiply(std::move(multipliers));
+    std::unique_ptr<IExpr> res = math::multiply(std::move(multipliers));
+    math::simplify(res);
+
+    return res;
 }
 
 std::unique_ptr<IExpr> Power::simplify_SimplifyChildren() {
@@ -118,17 +121,16 @@ std::unique_ptr<IExpr> intPow(const BigNum& base, const BigNum& exp) {
     auto numerator = boost::multiprecision::numerator(exp.GetImpl()) * exp.Sign();
     auto denominator = boost::multiprecision::denominator(exp.GetImpl());
 
-    auto step1 = intPowImpl(intBase, numerator);
-    auto step2 = intRtImpl(step1, denominator);
-
-    if (step2.has_value()) {
-        if (exp.Sign() == -1) {
-            return math::number(BigNum::Rational{1, step2.value()});
-        }
-        return math::number(step2.value().convert_to<BigNum::Rational>());
+    auto step1 = intRtImpl(intBase, denominator);
+    if (!step1.has_value()) {
+        return nullptr;
     }
+    auto step2 = intPowImpl(*step1, numerator);
 
-    return nullptr;
+    if (exp.Sign() == -1) {
+        return math::number(BigNum::Rational{1, step2});
+    }
+    return math::number(step2.convert_to<BigNum::Rational>());
 }
 
 std::unique_ptr<IExpr> powNumBase(const BigNum& base, std::unique_ptr<IExpr>& exp) {
@@ -149,6 +151,12 @@ std::unique_ptr<IExpr> powNumBase(const BigNum& base, std::unique_ptr<IExpr>& ex
 }
 
 std::unique_ptr<IExpr> Power::simplify_DegenerateCases() {
+    if (m_base->Is<Power>()) {
+        std::unique_ptr<IExpr> power = math::exp(std::move(m_base), std::move(m_exp));
+        math::simplify(power);
+        return power;
+    }
+
     if (m_exp->Is<Number>()) {
         auto expNumeric = m_exp->As<Number>();
         if (expNumeric->Value() == 0) {
@@ -233,8 +241,17 @@ std::unique_ptr<IExpr> Power::Copy() const {
 }
 
 std::string Power::ToString() const {
+    if (m_exp->Sign() == -1) {
+        std::unique_ptr<IExpr> newExp = math::multiply(m_exp->Copy(), math::number(-1));
+        math::simplify(newExp);
+        auto newExpStr = newExp->ToString();
+        if (newExpStr == "1") {
+            return fmt::format("\\frac{{1}}{{{}}}", m_base->ToString());
+        }
+        return fmt::format("\\left(\\frac{{1}}{{{}}}\\right)^{{{}}}", m_base->ToString(), newExpStr);
+    }
     if (!m_base->Is<Symbol>() && !(m_base->Is<Number>() && m_base->As<Number>()->Value().IsInteger())) {
-        return fmt::format("({})^{{{}}}", m_base->ToString(), m_exp->ToString());
+        return fmt::format("\\left({}\\right)^{{{}}}", m_base->ToString(), m_exp->ToString());
     }
     return fmt::format("{}^{{{}}}", m_base->ToString(), m_exp->ToString());
 }

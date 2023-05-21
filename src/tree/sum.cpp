@@ -1,4 +1,4 @@
-#include <tree/factory.hpp>
+#include <tree/math.hpp>
 #include <tree/hash_utils.hpp>
 #include <unordered_set>
 #include <ranges>
@@ -116,9 +116,23 @@ bool Sum::IsConstant() const {
 }
 
 int Sum::Sign() const {
+    const static auto extractHash = [](const std::unique_ptr<IExpr>& exp){
+        if (!exp->Is<Product>()) {
+            return exp->Hash();
+        }
+        auto term = Term{exp->As<Product>()->Copy()};
+        auto [_, l, r] = DecomposeTerm(term);
+        std::unique_ptr<IExpr> tmp = math::multiply(std::move(l), std::move(r));
+        math::simplify(tmp);
+        return tmp->Hash();
+    };
+
     auto result = std::max_element(m_terms.begin(), m_terms.end(), [](const auto& a, const auto& b) {
-        return a.Expression->Hash() < b.Expression->Hash();
+        const size_t aHash = extractHash(a.Expression);
+        const size_t bHash = extractHash(b.Expression);
+        return aHash < bHash;
     });
+
     return result->Expression->Sign();
 }
 
@@ -277,6 +291,11 @@ std::unique_ptr<IExpr> Sum::simplify_FactorOutTerms() {
     }
 
     if (res.empty()) {
+        if (gcdNumeric) {
+            auto newSum = math::add();
+            *newSum = std::move(*this);
+            return math::multiply(std::move(gcdNumeric), std::move(newSum));
+        }
         return nullptr;
     }
 

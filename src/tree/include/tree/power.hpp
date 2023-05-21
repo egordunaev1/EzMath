@@ -10,7 +10,7 @@ public:
     Power(std::unique_ptr<IExpr>&& base, std::unique_ptr<IExpr>&& exp);
 
     const IExpr& GetBase() const noexcept;
-    const IExpr& Exp() const noexcept;
+    const IExpr& GetExp() const noexcept;
 
     std::unique_ptr<IExpr>&& DetachBase() noexcept;
     std::unique_ptr<IExpr>&& DetachExp() noexcept;

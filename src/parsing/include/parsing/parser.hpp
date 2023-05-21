@@ -2,7 +2,8 @@
 
 #include <parsing/lexer.hpp>
 #include <tree/expression.hpp>
-#include <tree/factory.hpp>
+#include <tree/math.hpp>
+#include <functional>
 
 namespace ezmath::parsing {
 
@@ -27,9 +28,19 @@ private:
     
     std::unique_ptr<tree::IExpr> ParsePower();
     std::unique_ptr<tree::IExpr> ParseObject();
+    std::unique_ptr<tree::IExpr> ParseCommand();
+
+    std::optional<Token> ReadOpeningBracket();
+    std::optional<Token> ReadClosingBracket();
     std::unique_ptr<tree::IExpr> ReadArgument();
 
+    std::unique_ptr<tree::IExpr> ParseFrac();
+
     Lexer m_lexer;
+
+    std::unordered_multimap<std::string, std::function<std::unique_ptr<tree::IExpr>(Parser*)>> s_commandParsers {
+        {"\\frac", &Parser::ParseFrac}
+    };
 };
 
 std::unique_ptr<tree::IExpr> ParseTree(const std::string_view str);

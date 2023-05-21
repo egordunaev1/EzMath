@@ -1,4 +1,4 @@
-#include <tree/factory.hpp>
+#include <tree/math.hpp>
 #include <tree/hash_utils.hpp>
 #include <ranges>
 #include <unordered_set>
@@ -26,7 +26,7 @@ const IExpr& GetBase(const Multiplier& mul) {
 
 const IExpr& GetExp(const Multiplier& mul) {
     if (mul.Expression->Is<Power>()) {
-        return mul.Expression->As<Power>()->Exp();
+        return mul.Expression->As<Power>()->GetExp();
     }
     return *DefaultExp;
 }
@@ -234,19 +234,19 @@ std::unique_ptr<IExpr> Product::Copy() const {
     return res;
 }
 
-void Product::ToString(std::string& res, const IExpr& add) const {
+void Product::ToString(std::string& res, const IExpr& add, bool isSingle) const {
     auto str = add.ToString();
 
-    bool needBrackets = add.Is<Sum>();
+    bool needBrackets = add.Is<Sum>() && !isSingle;
     bool needDelimeter = !needBrackets && !str.empty() && !res.empty() && std::isdigit(str.front());
 
     if (needDelimeter)
         res.append(" \\cdot ");
     if (needBrackets)
-        res.push_back('(');
+        res.append("\\left(");
     res.append(str);
     if (needBrackets)
-        res.push_back(')');
+        res.append("\\right)");
 }
 
 std::string Product::ToString(const ValueType& expressions) const {
@@ -274,8 +274,8 @@ std::string Product::ToString(const ValueType& expressions) const {
     }
 
     std::string dividendStr, divisorStr;
-    std::ranges::for_each(dividend, [this, &dividendStr](const auto& expr){ ToString(dividendStr, expr.get()); });
-    std::ranges::for_each(divisor, [this, &divisorStr](const auto& expr){ ToString(divisorStr, *expr); });
+    std::ranges::for_each(dividend, [this, &dividendStr, isSingle = (dividend.size() == 1)](const auto& expr){ ToString(dividendStr, expr.get(), isSingle); });
+    std::ranges::for_each(divisor, [this, &divisorStr, isSingle = (dividend.size() == 1)](const auto& expr){ ToString(divisorStr, *expr, isSingle); });
 
     if (dividendStr.empty()) {
         dividendStr = "1";
@@ -296,7 +296,10 @@ std::string Product::ToString() const {
     auto constStr = ToString(m_constants);
     auto varsStr = ToString(m_variables);
 
-    const auto coef = (m_coefficient == 1) ? "" : m_coefficient.ToString();
+    auto coef = (m_coefficient == 1) ? "" : m_coefficient.ToString();
+    if (m_coefficient == -1) {
+        coef = "-";
+    }
     const auto delimeter1 = std::isdigit(constStr.front()) ? " \\cdot " : "";
     const auto delimeter2 = std::isdigit(varsStr.front()) ? " \\cdot " : "";    
     
