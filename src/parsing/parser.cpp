@@ -13,6 +13,9 @@ Parser::Parser(const std::string_view text)
 {}  
 
 std::unique_ptr<tree::IExpr> Parser::BuildTree() {
+    if (!m_lexer.GetToken()) {
+        throw exception::ParserException{"empty input"};
+    }
     auto tree = ParseExpression();
     if (m_lexer.GetToken()) {
         throw exception::ParserException{"found extra characters at the end of the expression"};

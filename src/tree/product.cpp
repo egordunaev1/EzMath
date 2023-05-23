@@ -112,6 +112,9 @@ std::unique_ptr<IExpr> Product::simplify_MultiplyLikeTerms() {
 }
 
 std::unique_ptr<IExpr> Product::simplify_DegenerateCases() {
+    if (m_coefficient == 0) {
+        return math::number(std::move(m_coefficient));
+    }
     if (m_constants.empty() && m_variables.empty()) {
         return math::number(m_coefficient);
     }
@@ -154,6 +157,10 @@ void Product::Add(std::unique_ptr<IExpr>&& subExpr) {
 
     if (subExpr->Is<Number>()) {
         m_coefficient *= subExpr->As<Number>()->Value();
+        if (m_coefficient == 0) {
+            m_constants.clear();
+            m_variables.clear();
+        }
         return;
     }
 
@@ -274,8 +281,8 @@ std::string Product::ToString(const ValueType& expressions) const {
     }
 
     std::string dividendStr, divisorStr;
-    std::ranges::for_each(dividend, [this, &dividendStr, isSingle = (dividend.size() == 1)](const auto& expr){ ToString(dividendStr, expr.get(), isSingle); });
-    std::ranges::for_each(divisor, [this, &divisorStr, isSingle = (dividend.size() == 1)](const auto& expr){ ToString(divisorStr, *expr, isSingle); });
+    std::for_each(dividend.begin(), dividend.end(), [this, &dividendStr, isSingle = (dividend.size() == 1)](const auto& expr){ ToString(dividendStr, expr.get(), isSingle); });
+    std::for_each(divisor.begin(), divisor.end(), [this, &divisorStr, isSingle = (divisor.size() == 1)](const auto& expr){ ToString(divisorStr, *expr, isSingle); });
 
     if (dividendStr.empty()) {
         dividendStr = "1";
@@ -293,15 +300,23 @@ std::string Product::ToString() const {
         return m_coefficient.ToString();
     }
 
+    auto coef = (m_coefficient == 1) ? "" : m_coefficient.ToString();
     auto constStr = ToString(m_constants);
     auto varsStr = ToString(m_variables);
 
-    auto coef = (m_coefficient == 1) ? "" : m_coefficient.ToString();
+    if (m_constants.size() == 1 && m_constants.begin()->Expression->Is<Sum>() && !(coef.empty() && varsStr.empty())) {
+        constStr = fmt::format("({})", constStr);
+    }
+
+    if (m_variables.size() == 1 && m_variables.begin()->Expression->Is<Sum>() && !(coef.empty() && constStr.empty())) {
+        varsStr = fmt::format("({})", varsStr);
+    }
+
     if (m_coefficient == -1) {
         coef = "-";
     }
-    const auto delimeter1 = std::isdigit(constStr.front()) ? " \\cdot " : "";
-    const auto delimeter2 = std::isdigit(varsStr.front()) ? " \\cdot " : "";    
+    const auto delimeter1 = !coef.empty() && std::isdigit(constStr.front()) ? " \\cdot " : "";
+    const auto delimeter2 = !(coef.empty() && !constStr.empty()) && std::isdigit(varsStr.front()) ? " \\cdot " : "";    
     
     return fmt::format("{}{}{}{}{}", coef, delimeter1, constStr, delimeter2, varsStr);
 }

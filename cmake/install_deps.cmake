@@ -1,8 +1,7 @@
 function(install_gtest)
     message("[GTest] Fetching...")
     include(FetchContent)
-    FetchContent_Declare(
-      googletest
+    FetchContent_Declare(googletest
       URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
     )
     # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -20,6 +19,18 @@ function(install_fmt)
     )
     FetchContent_MakeAvailable(fmt)
     message("[fmt] Done")
+endfunction()
+
+function(install_boost_multiprecision)
+    message("[boost] Fetching...")
+    include(FetchContent)
+    set(FETCHCONTENT_QUIET FALSE)
+    FetchContent_Declare(boost
+      URL https://github.com/boostorg/multiprecision/archive/refs/tags/Boost_1_82_0.tar.gz
+    )
+    FetchContent_MakeAvailable(boost)
+    set(FETCHCONTENT_QUIET TRUE)
+    message("[boost] Done")
 endfunction()
 
 function(install_boost)

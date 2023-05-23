@@ -36,7 +36,7 @@ print_compile_options()
 #                      Configure Project                      #
 #=============================================================#
 
-install_boost()
+install_boost_multiprecision()
 install_fmt()
 
 add_subdirectory(src)

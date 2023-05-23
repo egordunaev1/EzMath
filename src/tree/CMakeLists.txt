@@ -10,9 +10,10 @@ set(TREE_SRC
     bigint.cpp)
 
 add_library(${PROJECT_NAME} ${TREE_SRC})
+target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_MP_STANDALONE)
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${Boost_INCLUDE_DIRS}
     PUBLIC include)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC Boost::multiprecision
-    PRIVATE fmt::fmt)
+    PUBLIC fmt::fmt)

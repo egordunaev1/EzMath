@@ -1,0 +1,8 @@
+{
+  "id": "obsidian-plugin-ezmath",
+  "name": "EzMath",
+  "author": "Dunaev Egor",
+  "description": "Transform math expressions directly in obsidian.",
+  "isDesktopOnly": true,
+  "version": "0.1"
+}

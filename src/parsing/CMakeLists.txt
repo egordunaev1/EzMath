@@ -10,5 +10,4 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC include
     PUBLIC ${CMAKE_SOURCE_DIR}/src/tree/include)
 target_link_libraries(${PROJECT_NAME} 
-    PRIVATE fmt::fmt
     PUBLIC tree)

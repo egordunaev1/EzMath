@@ -42,6 +42,7 @@ Term::Term(std::unique_ptr<IExpr>&& expr)
     if (Expression->Is<Product>()) {
         constexpr size_t RANDOM_BASE = 3906861806704847745u;
         Hash = hash::asymmetric_hash(RANDOM_BASE, Expression->As<Product>()->GetVariables());
+        return;
     }
     Hash = Expression->Hash();
 }
@@ -348,7 +349,8 @@ std::unique_ptr<IExpr> Sum::simplify_AddLikeTerms() {
             coefs.emplace_back(math::multiply(math::number(std::move(coef1)), std::move(constPart1)));
         }
 
-        auto newCoef = math::add(std::move(coefs));
+        std::unique_ptr<IExpr> newCoef = math::add(std::move(coefs));
+        math::simplify(newCoef);
         res.m_terms.emplace(math::multiply(std::move(newCoef), std::move(varPart)));
     }
 
